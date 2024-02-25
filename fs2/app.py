@@ -6,17 +6,10 @@ import gradio as gr
 import soundfile as sf
 import torch
 
-from matcha.cli import (
-    MATCHA_URLS,
-    VOCODER_URLS,
-    assert_model_downloaded,
-    get_device,
-    load_matcha,
-    load_vocoder,
-    process_text,
-    to_waveform,
-)
-from matcha.utils.utils import get_user_data_dir, plot_tensor
+from fs2.cli import (MATCHA_URLS, VOCODER_URLS, assert_model_downloaded,
+                     get_device, load_matcha, load_vocoder, process_text,
+                     to_waveform)
+from fs2.utils.utils import get_user_data_dir, plot_tensor
 
 LOCATION = Path(get_user_data_dir())
 

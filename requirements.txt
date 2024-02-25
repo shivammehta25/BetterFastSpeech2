@@ -34,12 +34,10 @@ scipy
 torchaudio
 matplotlib
 pandas
-conformer==0.3.2
-diffusers==0.25.0
 notebook
 ipywidgets
 gradio
 gdown
 wget
 seaborn
-piper_phonemize
+pyworld

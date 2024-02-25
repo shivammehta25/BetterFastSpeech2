@@ -10,16 +10,6 @@ def sequence_mask(length, max_length=None):
     x = torch.arange(max_length, dtype=length.dtype, device=length.device)
     return x.unsqueeze(0) < length.unsqueeze(1)
 
-
-def fix_len_compatibility(length, num_downsamplings_in_unet=2):
-    factor = torch.scalar_tensor(2).pow(num_downsamplings_in_unet)
-    length = (length / factor).ceil() * factor
-    if not torch.onnx.is_in_onnx_export():
-        return length.int().item()
-    else:
-        return length
-
-
 def convert_pad_shape(pad_shape):
     inverted_shape = pad_shape[::-1]
     pad_shape = [item for sublist in inverted_shape for item in sublist]

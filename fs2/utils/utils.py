@@ -12,7 +12,7 @@ import torch
 import wget
 from omegaconf import DictConfig
 
-from matcha.utils import pylogger, rich_utils
+from fs2.utils import pylogger, rich_utils
 
 log = pylogger.get_pylogger(__name__)
 
@@ -161,6 +161,9 @@ def save_plot(tensor, savepath):
     fig.canvas.draw()
     plt.savefig(savepath)
     plt.close()
+    
+def to_torch(x, dtype):
+    return torch.tensor(x, dtype=dtype) if not isinstance(x, torch.Tensor) else x
 
 
 def to_numpy(tensor):
@@ -217,3 +220,24 @@ def assert_model_downloaded(checkpoint_path, url, use_wget=True):
         gdown.download(url=url, output=checkpoint_path, quiet=False, fuzzy=True)
     else:
         wget.download(url=url, out=checkpoint_path)
+
+
+
+def trim_or_pad_to_target_length(
+        data_1d_or_2d: np.ndarray, target_length: int
+) -> np.ndarray:
+    assert len(data_1d_or_2d.shape) in {1, 2}
+    delta = data_1d_or_2d.shape[0] - target_length
+    if delta >= 0:  # trim if being longer
+        data_1d_or_2d = data_1d_or_2d[: target_length]
+    else:  # pad if being shorter
+        if len(data_1d_or_2d.shape) == 1:
+            data_1d_or_2d = np.concatenate(
+                [data_1d_or_2d, np.zeros(-delta)], axis=0
+            )
+        else:
+            data_1d_or_2d = np.concatenate(
+                [data_1d_or_2d, np.zeros((-delta, data_1d_or_2d.shape[1]))],
+                axis=0
+            )
+    return data_1d_or_2d

@@ -3,7 +3,7 @@ from typing import Any, Dict
 from lightning.pytorch.utilities import rank_zero_only
 from omegaconf import OmegaConf
 
-from matcha.utils import pylogger
+from fs2.utils import pylogger
 
 log = pylogger.get_pylogger(__name__)
 

@@ -3,8 +3,8 @@ from abc import ABC
 import torch
 import torch.nn.functional as F
 
-from matcha.models.components.decoder import Decoder
-from matcha.utils.pylogger import get_pylogger
+from fs2.models.components.postnet import Decoder
+from fs2.utils.pylogger import get_pylogger
 
 log = get_pylogger(__name__)
 

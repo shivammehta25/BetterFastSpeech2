@@ -9,7 +9,7 @@ import onnxruntime as ort
 import soundfile as sf
 import torch
 
-from matcha.cli import plot_spectrogram_to_numpy, process_text
+from fs2.cli import plot_spectrogram_to_numpy, process_text
 
 
 def validate_args(args):

@@ -2,27 +2,19 @@
 import os
 
 import numpy
-from Cython.Build import cythonize
-from setuptools import Extension, find_packages, setup
-
-exts = [
-    Extension(
-        name="matcha.utils.monotonic_align.core",
-        sources=["matcha/utils/monotonic_align/core.pyx"],
-    )
-]
+from setuptools import find_packages, setup
 
 with open("README.md", encoding="utf-8") as readme_file:
     README = readme_file.read()
 
 cwd = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(cwd, "matcha", "VERSION")) as fin:
+with open(os.path.join(cwd, "fs2", "VERSION")) as fin:
     version = fin.read().strip()
 
 setup(
-    name="matcha-tts",
+    name="fs2",
     version=version,
-    description="🍵 Matcha-TTS: A fast TTS architecture with conditional flow matching",
+    description="I got pissed at all the other implementations for not working, so I made my own.",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Shivam Mehta",
@@ -35,11 +27,11 @@ setup(
     # use this to customize global commands available in the terminal after installing the package
     entry_points={
         "console_scripts": [
-            "matcha-data-stats=matcha.utils.generate_data_statistics:main",
-            "matcha-tts=matcha.cli:cli",
-            "matcha-tts-app=matcha.app:main",
+            # "matcha-data-stats=matcha.utils.generate_data_statistics:main",
+            # "matcha-tts=matcha.cli:cli",
+            # "matcha-tts-app=matcha.app:main",
         ]
     },
-    ext_modules=cythonize(exts, language_level=3),
+    # ext_modules=cythonize(exts, language_level=3),
     python_requires=">=3.9.0",
 )

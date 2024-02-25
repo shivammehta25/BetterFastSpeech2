@@ -10,8 +10,8 @@ import torch
 from lightning import LightningModule
 from lightning.pytorch.utilities import grad_norm
 
-from matcha import utils
-from matcha.utils.utils import plot_tensor
+from fs2 import utils
+from fs2.utils.utils import plot_tensor
 
 log = utils.get_pylogger(__name__)
 

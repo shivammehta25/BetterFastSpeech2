@@ -9,13 +9,14 @@ import numpy as np
 import soundfile as sf
 import torch
 
-from matcha.hifigan.config import v1
-from matcha.hifigan.denoiser import Denoiser
-from matcha.hifigan.env import AttrDict
-from matcha.hifigan.models import Generator as HiFiGAN
-from matcha.models.matcha_tts import MatchaTTS
-from matcha.text import sequence_to_text, text_to_sequence
-from matcha.utils.utils import assert_model_downloaded, get_user_data_dir, intersperse
+from fs2.hifigan.config import v1
+from fs2.hifigan.denoiser import Denoiser
+from fs2.hifigan.env import AttrDict
+from fs2.hifigan.models import Generator as HiFiGAN
+from fs2.models.fastspeech2 import MatchaTTS
+from fs2.text import sequence_to_text, text_to_sequence
+from fs2.utils.utils import (assert_model_downloaded, get_user_data_dir,
+                             intersperse)
 
 MATCHA_URLS = {
     "matcha_ljspeech": "https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/matcha_ljspeech.ckpt",

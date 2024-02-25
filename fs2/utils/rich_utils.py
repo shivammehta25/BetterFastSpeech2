@@ -9,7 +9,7 @@ from lightning.pytorch.utilities import rank_zero_only
 from omegaconf import DictConfig, OmegaConf, open_dict
 from rich.prompt import Prompt
 
-from matcha.utils import pylogger
+from fs2.utils import pylogger
 
 log = pylogger.get_pylogger(__name__)
 
