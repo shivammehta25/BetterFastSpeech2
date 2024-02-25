@@ -46,7 +46,7 @@ def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folde
     # Benefit of doing it over batch is the added speed due to multiprocessing
     for batch in tqdm(dataset, desc="🍵 Preprocessing durations 🍵"):
         # Get pre generated durations with Matcha-TTS
-        for i in range(cfg['batch_size']):
+        for i in range(batch['x'].shape[0]):
             inp_len = batch['x_lengths'][i]
             mel_len = batch['y_lengths'][i]
             pitch = batch['pitchs'][i][:inp_len]
@@ -119,7 +119,7 @@ def main():
         cfg["train_filelist_path"] = str(os.path.join(root_path, cfg["train_filelist_path"]))
         cfg["valid_filelist_path"] = str(os.path.join(root_path, cfg["valid_filelist_path"]))
         cfg['generate_properties'] = True
-        
+        # Remove this after testing let the multiprocessing do its job 
         # cfg['num_workers'] = 0
 
     if args.output_folder is not None:
