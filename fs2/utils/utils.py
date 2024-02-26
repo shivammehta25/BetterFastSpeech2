@@ -151,6 +151,16 @@ def plot_tensor(tensor):
     plt.close()
     return data
 
+def plot_line(tensor, min_value, max_value):
+    plt.style.use("default")
+    fig, ax = plt.subplots(figsize=(12, 3))
+    ax.plot(tensor)
+    ax.set_ylim(min_value, max_value)
+    plt.tight_layout()
+    fig.canvas.draw()
+    data = save_figure_to_numpy(fig)
+    plt.close()
+    return data
 
 def save_plot(tensor, savepath):
     plt.style.use("default")

@@ -30,11 +30,10 @@ def generate_path(duration, mask):
     path = path * mask
     return path
 
-
-def duration_loss(logw, logw_, lengths):
-    loss = torch.sum((logw - logw_) ** 2) / torch.sum(lengths)
-    return loss
-
+def invert_log_norm(data, mu, std):
+    # log -> normalise inverse := denormalise -> exp
+    data = denormalize(data, mu, std)
+    return torch.exp(data) - 1.0
 
 def normalize(data, mu, std):
     if not isinstance(mu, (float, int)):
@@ -78,3 +77,21 @@ def denormalize(data, mu, std):
         std = std.unsqueeze(-1)
 
     return data * std + mu
+
+
+def expand_lengths(x, durations):
+    # x: B x T x C, durations: B x T
+    out_lens = durations.sum(dim=1)
+    max_len = out_lens.max()
+    bsz, seq_len, dim = x.size()
+    out = x.new_zeros((bsz, max_len, dim))
+
+    for b in range(bsz):
+        indices = []
+        for t in range(seq_len):
+            indices.extend([t] * durations[b, t].item())
+        indices = torch.tensor(indices, dtype=torch.long).to(x.device)
+        out_len = out_lens[b].item()
+        out[b, :out_len] = x[b].index_select(0, indices)
+
+    return out, out_lens

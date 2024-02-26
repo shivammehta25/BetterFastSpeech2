@@ -243,7 +243,7 @@ class TextMelDataset(torch.utils.data.Dataset):
             text = self.get_text(text, add_blank=self.add_blank)
             phoneme_durations = self.load_durations(filepath, text)
             mel, energy = self.get_mel(filepath)
-            energy = self.mean_phoneme_energy(energy, phoneme_durations)
+            energy = self.mean_phoneme_energy(energy.squeeze().cpu().numpy(), phoneme_durations)
             pitch = self.get_pitch(filepath, phoneme_durations)
             # Do not normalise them in this case as this is supposed to be called by
             # python fs2/utils/preprocess.py -i ljspeech
@@ -253,10 +253,13 @@ class TextMelDataset(torch.utils.data.Dataset):
             assert len(phoneme_durations) == len(text)
             #! TODO: implement duration and pitch loading
             pitch = np.load(Path(self.processed_folder_path) / 'pitch' / Path(Path(filepath).stem).with_suffix(".npy"))
+            pitch = normalize(pitch, self.data_statistics['pitch_mean'], self.data_statistics['pitch_std'])
             assert len(pitch) == len(text)
             mel = np.load(Path(self.processed_folder_path) / 'mel' / Path(Path(filepath).stem).with_suffix(".npy"))
+            mel = normalize(mel, self.data_statistics['mel_mean'], self.data_statistics['mel_std'])
             assert mel.shape[-1] == sum(phoneme_durations)
             energy = np.load(Path(self.processed_folder_path) / 'energy' / Path(Path(filepath).stem).with_suffix(".npy")) 
+            energy = normalize(energy, self.data_statistics['energy_mean'], self.data_statistics['energy_std'])
             assert len(energy) == len(text)
 
         return {"x": text, "y": mel, "spk": spk, 'filepath': filepath, 
@@ -305,9 +308,9 @@ class TextMelBatchCollate:
 
         y = torch.zeros((B, n_feats, y_max_length), dtype=torch.float32)
         x = torch.zeros((B, x_max_length), dtype=torch.long)
-        pitchs = torch.zeros((B, x_max_length), dtype=torch.float32)
-        energies = torch.zeros((B, x_max_length), dtype=torch.float32)
-        durations = torch.zeros((B, x_max_length), dtype=torch.float32)
+        pitches = torch.zeros((B, x_max_length), dtype=torch.float)
+        energies = torch.zeros((B, x_max_length), dtype=torch.float)
+        durations = torch.zeros((B, x_max_length), dtype=torch.long)
         
         
         y_lengths, x_lengths = [], []
@@ -322,7 +325,7 @@ class TextMelBatchCollate:
             x[i, : x_.shape[-1]] = to_torch(x_, torch.long)
             spks.append(item["spk"])
             
-            pitchs[i, : item["pitch"].shape[-1]] = to_torch(item["pitch"], torch.float)
+            pitches[i, : item["pitch"].shape[-1]] = to_torch(item["pitch"], torch.float)
             energies[i, : item["energy"].shape[-1]] = to_torch(item["energy"], torch.float)
             durations[i, : item["duration"].shape[-1]] = to_torch(item["duration"], torch.float)
             filepaths.append(item['filepath'])
@@ -337,8 +340,8 @@ class TextMelBatchCollate:
             "y": y,
             "y_lengths": y_lengths,
             "spks": spks,
-            'pitchs': pitchs,
-            'energys': energies,
+            'pitches': pitches,
+            'energies': energies,
             'durations': durations,
             'filepaths': filepaths
-        }
+        } 

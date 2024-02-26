@@ -66,12 +66,12 @@ def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folde
             filname = Path(batch['filepaths'][i]).stem
             inp_len = batch['x_lengths'][i]
             mel_len = batch['y_lengths'][i]
-            pitch = batch['pitchs'][i][:inp_len]
+            pitch = batch['pitches'][i][:inp_len]
             pitch_min = min(pitch_min, torch.min(pitch).item())
             pitch_max = max(pitch_max, torch.max(pitch).item())
             
             np.save(pitch_folder / f"{filname}.npy", to_numpy(pitch))
-            energy = batch['energys'][i][:inp_len]
+            energy = batch['energies'][i][:inp_len]
             energy_min = min(energy_min, torch.min(energy).item())
             energy_max = max(energy_max, torch.max(energy).item())
             np.save(energy_folder / f"{filname}.npy", to_numpy(energy))
