@@ -1,4 +1,4 @@
-duration_prediction_type: fm 
+duration_prediction_type: det
 d_model: ${model.encoder.d_model} 
 n_bins: 256
 hidden_dim: 256

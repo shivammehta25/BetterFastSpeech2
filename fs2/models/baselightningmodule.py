@@ -204,13 +204,13 @@ class BaseLightningClass(LightningModule, ABC):
                 
                 self.logger.experiment.add_image(
                     f"dec_output/{i}",
-                    plot_tensor(decoder_output.squeeze().cpu()),
+                    plot_tensor(decoder_output.squeeze().cpu().T),
                     self.current_epoch,
                     dataformats="HWC",
                 )
                 self.logger.experiment.add_image(
                     f"mel/generated_{i}",
-                    plot_tensor(y_pred.squeeze().cpu()),
+                    plot_tensor(y_pred.squeeze().cpu().T),
                     self.current_epoch,
                     dataformats="HWC",
                 )
@@ -223,8 +223,8 @@ class BaseLightningClass(LightningModule, ABC):
                     f"pitch/gen_{i}",
                     plot_line(
                         pitch_pred.squeeze().cpu(),
-                        min_value=denormalize(self.pitch_min, self.pitch_mean, self.pitch_std).cpu().item(),
-                        max_value=denormalize(self.pitch_max, self.pitch_mean, self.pitch_std).cpu().item()
+                        min_value=invert_log_norm(self.pitch_min, self.pitch_mean, self.pitch_std).cpu().item(),
+                        max_value=invert_log_norm(self.pitch_max, self.pitch_mean, self.pitch_std).cpu().item()
                     ),
                     self.current_epoch,
                     dataformats="HWC",
@@ -236,8 +236,8 @@ class BaseLightningClass(LightningModule, ABC):
                     f"energy/gen_{i}",
                     plot_line(
                         energy_pred.squeeze().cpu(),
-                        min_value=denormalize(self.energy_min, self.energy_mean, self.energy_std).cpu().item(),
-                        max_value=denormalize(self.energy_max, self.energy_mean, self.energy_std).cpu().item()
+                        min_value=invert_log_norm(self.energy_min, self.energy_mean, self.energy_std).cpu().item(),
+                        max_value=invert_log_norm(self.energy_max, self.energy_mean, self.energy_std).cpu().item()
                     ),
                     self.current_epoch,
                     dataformats="HWC",
