@@ -361,7 +361,7 @@ class VarianceAdaptor(nn.Module):
             logw_hat = self.fm_synthesise(x, x_mask)
             
         w = torch.exp(logw_hat) * x_mask.squeeze(2)
-        w_ceil = torch.round(w) * d_factor
+        w_ceil = torch.ceil(w) * d_factor
         dur_out = torch.clamp(w_ceil.long(), min=0) 
         
         log_pitch_out, pitch_emb = self.get_pitch_emb(x, x_mask, factor=p_factor)

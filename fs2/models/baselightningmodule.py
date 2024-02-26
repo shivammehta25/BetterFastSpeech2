@@ -202,7 +202,7 @@ class BaseLightningClass(LightningModule, ABC):
 
 
 
-    def plot_mel(self, data, titles):
+    def plot_mel(self, data, titles, show=False):
         fig, axes = plt.subplots(len(data), 1, squeeze=False)
         if titles is None:
             titles = [None for i in range(len(data))]
@@ -251,6 +251,10 @@ class BaseLightningClass(LightningModule, ABC):
                 labelright=True,
             )
         fig.canvas.draw()
+        if show:
+            plt.show()
+            return
+
         data = save_figure_to_numpy(fig)
         plt.close()
         return data 
