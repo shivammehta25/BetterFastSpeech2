@@ -171,7 +171,7 @@ class TextMelDataset(torch.utils.data.Dataset):
         return durs
         
      
-    def get_pitch(self, filepath, phoneme_durations, log_scale=True):
+    def get_pitch(self, filepath, phoneme_durations):
         _waveform, _sr = ta.load(filepath)
         _waveform = _waveform.squeeze(0).double().numpy() 
         assert _sr == self.sample_rate, f"Sample rate mismatch => Found: {_sr} != {self.sample_rate} = Expected"
@@ -204,14 +204,9 @@ class TextMelDataset(torch.utils.data.Dataset):
             ]
         )
         assert len(pitch) == len(phoneme_durations)
-        
-        if log_scale:
-            # In fairseq they do it
-            pitch = np.log(pitch + 1)
-        
         return pitch
     
-    def mean_phoneme_energy(self, energy, phoneme_durations, log_scale=True):
+    def mean_phoneme_energy(self, energy, phoneme_durations):
         energy = trim_or_pad_to_target_length(energy, sum(phoneme_durations))
         d_cumsum = np.cumsum(np.concatenate([np.array([0]), phoneme_durations]))
         energy = np.array(
@@ -222,9 +217,9 @@ class TextMelDataset(torch.utils.data.Dataset):
         )
         assert len(energy) == len(phoneme_durations)
         
-        if log_scale:
-            # In fairseq they do it
-            energy = np.log(energy + 1)
+        # if log_scale:
+        #     # In fairseq they do it
+        #     energy = np.log(energy + 1)
         
         return energy
 

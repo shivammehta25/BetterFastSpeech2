@@ -2,6 +2,7 @@
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 
 def sequence_mask(length, max_length=None):
@@ -78,8 +79,28 @@ def denormalize(data, mu, std):
 
     return data * std + mu
 
+def expand_lengths(enc_out, durations , pace: float = 1.0):
+    """If target=None, then predicted durations are applied"""
+    dtype = enc_out.dtype
+    reps = durations.float() / pace
+    reps = (reps + 0.5).long()
+    dec_lens = reps.sum(dim=1)
 
-def expand_lengths(x, durations):
+    max_len = dec_lens.max()
+    reps_cumsum = torch.cumsum(F.pad(reps, (1, 0, 0, 0), value=0.0),
+                               dim=1)[:, None, :]
+    reps_cumsum = reps_cumsum.to(dtype)
+
+    range_ = torch.arange(max_len, device=enc_out.device)[None, :, None]
+    mult = ((reps_cumsum[:, :, :-1] <= range_) &
+            (reps_cumsum[:, :, 1:] > range_))
+    mult = mult.to(dtype)
+    enc_rep = torch.matmul(mult, enc_out)
+
+    return enc_rep, dec_lens
+
+
+def expand_lengths_slow(x, durations):
     # x: B x T x C, durations: B x T
     out_lens = durations.sum(dim=1)
     max_len = out_lens.max()

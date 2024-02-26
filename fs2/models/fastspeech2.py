@@ -12,7 +12,7 @@ from fs2.models.baselightningmodule import BaseLightningClass
 from fs2.models.components.postnet import Postnet
 from fs2.models.components.transformer import FFTransformer
 from fs2.models.components.variance_adaptor import VarianceAdaptor
-from fs2.utils.model import denormalize, generate_path, sequence_mask
+from fs2.utils.model import denormalize, invert_log_norm
 
 log = utils.get_pylogger(__name__)
 
@@ -120,7 +120,7 @@ class FastSpeech2(BaseLightningClass):
         
 
     @torch.inference_mode()
-    def synthesise(self, x, x_lengths, spks=None):
+    def synthesise(self, x, x_lengths, spks=None, length_scale=1.0, p_factor=1.0, e_factor=1.0, d_factor=1.0):
         # For RTF computation
         t = dt.datetime.now()
         
@@ -131,7 +131,7 @@ class FastSpeech2(BaseLightningClass):
             x = x + spk_emb.unsqueeze(1)
         
         # teacher forced durations during training 
-        var_ada_outputs = self.variance_adapter.synthesise(x, x_mask)
+        var_ada_outputs = self.variance_adapter.synthesise(x, x_mask, d_factor=length_scale, p_factor=p_factor, e_factor=e_factor)
         
         decoder_out, y_mask = self.decoder(var_ada_outputs['x_upscaled'], var_ada_outputs['out_lens'])
         
@@ -147,7 +147,7 @@ class FastSpeech2(BaseLightningClass):
             "y_pred" : denormalize(y_hat_post, self.mel_mean, self.mel_std),
             "decoder_output": denormalize(y_hat, self.mel_mean, self.mel_std),
             "dur_pred": var_ada_outputs["dur_pred"],
-            "pitch_pred": denormalize(var_ada_outputs["pitch_pred"], self.pitch_mean, self.pitch_std),
-            "energy_pred": denormalize(var_ada_outputs["energy_pred"], self.energy_mean, self.energy_std),
+            "pitch_pred": denormalize(var_ada_outputs["log_pitch_pred"], self.pitch_mean, self.pitch_std),
+            "energy_pred": denormalize(var_ada_outputs["log_energy_pred"], self.energy_mean, self.energy_std),
             "rtf": rtf,
         }

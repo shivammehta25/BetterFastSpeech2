@@ -6,6 +6,7 @@ import inspect
 from abc import ABC
 from typing import Any, Dict
 
+import matplotlib.pyplot as plt
 import torch
 from lightning import LightningModule
 from lightning.pytorch.utilities import grad_norm
@@ -13,7 +14,7 @@ from lightning.pytorch.utilities import grad_norm
 from fs2 import utils
 from fs2.utils.model import (denormalize, expand_lengths, invert_log_norm,
                              normalize)
-from fs2.utils.utils import plot_line, plot_tensor
+from fs2.utils.utils import plot_line, plot_tensor, save_figure_to_numpy
 
 log = utils.get_pylogger(__name__)
 
@@ -35,12 +36,13 @@ class BaseLightningClass(LightningModule, ABC):
         self.register_buffer("mel_std", torch.tensor(data_statistics["mel_std"]))
         
         pitch_min = normalize(torch.tensor(data_statistics["pitch_min"]), self.pitch_mean, self.pitch_std)
-        self.register_buffer("pitch_min", pitch_min)
         pitch_max = normalize(torch.tensor(data_statistics["pitch_max"]), self.pitch_mean, self.pitch_std)
-        self.register_buffer("pitch_max", pitch_max)
         energy_min = normalize(torch.tensor(data_statistics["energy_min"]), self.energy_mean, self.energy_std)
-        self.register_buffer("energy_min", energy_min)
         energy_max = normalize(torch.tensor(data_statistics["energy_max"]), self.energy_mean, self.energy_std)
+        
+        self.register_buffer("pitch_min", pitch_min)
+        self.register_buffer("pitch_max", pitch_max)
+        self.register_buffer("energy_min", energy_min)
         self.register_buffer("energy_max", energy_max)
 
     def configure_optimizers(self) -> Any:
@@ -153,46 +155,23 @@ class BaseLightningClass(LightningModule, ABC):
             if self.current_epoch == 0:
                 log.debug("Plotting original samples")
                 for i in range(2):
-                    y = denormalize(one_batch["y"][i].unsqueeze(0).to(self.device), self.mel_mean, self.mel_std)
+                    y = denormalize(one_batch["y"][i].unsqueeze(0).to(self.device), self.mel_mean, self.mel_std)[:, :, :one_batch["y_lengths"][i]]
+                    durations = one_batch["durations"][i].to(self.device)[:one_batch["x_lengths"][i]]
+
+                    original_pitch = one_batch["pitches"][i].unsqueeze(0).to(self.device)[:, :one_batch["x_lengths"][i]]
+                    original_pitch, _ = expand_lengths(original_pitch.unsqueeze(2), durations.unsqueeze(0))
+                    original_pitch = denormalize(original_pitch, self.pitch_mean, self.pitch_std)
+                    
+                    original_energy = one_batch["energies"][i].unsqueeze(0).to(self.device)[:, :one_batch["x_lengths"][i]]
+                    original_energy, _ = expand_lengths(original_energy.unsqueeze(2), durations.unsqueeze(0))
+                    original_energy = denormalize(original_energy, self.energy_mean, self.energy_std)
+                     
                     self.logger.experiment.add_image(
-                        f"mel/original_{i}",
-                        plot_tensor(y.squeeze().cpu()),
+                        f"original/mel_{i}",
+                        self.plot_mel([(y.squeeze().cpu().numpy(), original_pitch.squeeze(), original_energy.squeeze())], [f"Data_{i}"]),
                         self.current_epoch,
                         dataformats="HWC",
                     )
-                    durations = one_batch["durations"][i].to(self.device)[:one_batch["x_lengths"][i]]
-
-                    # Plot pitch
-                    original_pitch = one_batch["pitches"][i].unsqueeze(0).to(self.device)[:, :one_batch["x_lengths"][i]]
-                    original_pitch = invert_log_norm(original_pitch, self.pitch_mean, self.pitch_std)
-                    original_pitch, _ = expand_lengths(original_pitch.unsqueeze(2), durations.unsqueeze(0))
-                    
-                    self.logger.experiment.add_image(
-                        f"pitch/original_{i}",
-                        plot_line(
-                            original_pitch.squeeze().cpu(),
-                            min_value=invert_log_norm(self.pitch_min, self.pitch_mean, self.pitch_std).cpu().item(),
-                            max_value=invert_log_norm(self.pitch_max, self.pitch_mean, self.pitch_std).cpu().item()
-                        ),
-                        self.current_epoch,
-                        dataformats="HWC",
-                    ) 
-                    
-                    # Plot energy
-                    original_energy = one_batch["energies"][i].unsqueeze(0).to(self.device)[:, :one_batch["x_lengths"][i]]
-                    original_energy = invert_log_norm(original_energy, self.energy_mean, self.energy_std)
-                    original_energy, _ = expand_lengths(original_energy.unsqueeze(2), durations.unsqueeze(0))
-                    
-                    self.logger.experiment.add_image(
-                        f"energy/original_{i}",
-                        plot_line(
-                            original_energy.squeeze().cpu(),
-                            min_value=invert_log_norm(self.energy_min, self.energy_mean, self.energy_std).cpu().item(),
-                            max_value=invert_log_norm(self.energy_max, self.energy_mean, self.energy_std).cpu().item()
-                        ),
-                        self.current_epoch,
-                        dataformats="HWC",
-                    ) 
 
             log.debug("Synthesising...")
             for i in range(2):
@@ -201,48 +180,78 @@ class BaseLightningClass(LightningModule, ABC):
                 spks = one_batch["spks"][i].unsqueeze(0).to(self.device) if one_batch["spks"] is not None else None
                 output = self.synthesise(x[:, :x_lengths], x_lengths, spks=spks)
                 decoder_output, y_pred = output["decoder_output"], output["y_pred"]
-                
+                pitch_pred, energy_pred = output["pitch_pred"], output["energy_pred"]
+ 
                 self.logger.experiment.add_image(
                     f"dec_output/{i}",
                     plot_tensor(decoder_output.squeeze().cpu().T),
                     self.current_epoch,
                     dataformats="HWC",
                 )
-                self.logger.experiment.add_image(
-                    f"mel/generated_{i}",
-                    plot_tensor(y_pred.squeeze().cpu().T),
-                    self.current_epoch,
-                    dataformats="HWC",
-                )
 
-                durations = output['dur_pred'].squeeze(0)
-                
-                pitch_pred = torch.exp(output["pitch_pred"]) - 1.0
-                pitch_pred, _ = expand_lengths(pitch_pred.unsqueeze(2), durations.unsqueeze(0))
                 self.logger.experiment.add_image(
-                    f"pitch/gen_{i}",
-                    plot_line(
-                        pitch_pred.squeeze().cpu(),
-                        min_value=invert_log_norm(self.pitch_min, self.pitch_mean, self.pitch_std).cpu().item(),
-                        max_value=invert_log_norm(self.pitch_max, self.pitch_mean, self.pitch_std).cpu().item()
-                    ),
+                    f"generated/mel_{i}",
+                    self.plot_mel([(y_pred.squeeze().cpu().numpy().T, pitch_pred.squeeze(), energy_pred.squeeze())], [f"Generated_{i}"]),
                     self.current_epoch,
                     dataformats="HWC",
                 )
                 
-                energy_pred = torch.exp(output["energy_pred"]) - 1.0
-                energy_pred, _ = expand_lengths(energy_pred.unsqueeze(2), durations.unsqueeze(0))
-                self.logger.experiment.add_image(
-                    f"energy/gen_{i}",
-                    plot_line(
-                        energy_pred.squeeze().cpu(),
-                        min_value=invert_log_norm(self.energy_min, self.energy_mean, self.energy_std).cpu().item(),
-                        max_value=invert_log_norm(self.energy_max, self.energy_mean, self.energy_std).cpu().item()
-                    ),
-                    self.current_epoch,
-                    dataformats="HWC",
-                )
-
 
     def on_before_optimizer_step(self, optimizer):
         self.log_dict({f"grad_norm/{k}": v for k, v in grad_norm(self, norm_type=2).items()})
+
+
+
+    def plot_mel(self, data, titles):
+        fig, axes = plt.subplots(len(data), 1, squeeze=False)
+        if titles is None:
+            titles = [None for i in range(len(data))]
+        
+        pitch_max = denormalize(self.pitch_max, self.pitch_mean, self.pitch_std).cpu().item()
+        energy_min = denormalize(self.energy_min, self.energy_mean, self.energy_std).cpu().item()
+        energy_max = denormalize(self.energy_max, self.energy_mean, self.energy_std).cpu().item()
+
+        def add_axis(fig, old_ax):
+            ax = fig.add_axes(old_ax.get_position(), anchor="W")
+            ax.set_facecolor("None")
+            return ax
+
+        for i in range(len(data)):
+            mel, pitch, energy = data[i]
+            axes[i][0].imshow(mel, origin="lower")
+            axes[i][0].set_aspect(2.5, adjustable="box")
+            axes[i][0].set_ylim(0, mel.shape[0])
+            axes[i][0].set_title(titles[i], fontsize="medium")
+            axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
+            axes[i][0].set_anchor("W")
+
+            ax1 = add_axis(fig, axes[i][0])
+            ax1.plot(pitch, color="tomato")
+            ax1.set_xlim(0, mel.shape[1])
+            ax1.set_ylim(0, pitch_max)
+            ax1.set_ylabel("F0", color="tomato")
+            ax1.tick_params(
+                labelsize="x-small", colors="tomato", bottom=False, labelbottom=False
+            )
+
+            ax2 = add_axis(fig, axes[i][0])
+            ax2.plot(energy, color="darkviolet")
+            ax2.set_xlim(0, mel.shape[1])
+            ax2.set_ylim(energy_min, energy_max)
+            ax2.set_ylabel("Energy", color="darkviolet")
+            ax2.yaxis.set_label_position("right")
+            ax2.tick_params(
+                labelsize="x-small",
+                colors="darkviolet",
+                bottom=False,
+                labelbottom=False,
+                left=False,
+                labelleft=False,
+                right=True,
+                labelright=True,
+            )
+        plt.tight_layout()
+        fig.canvas.draw()
+        data = save_figure_to_numpy(fig)
+        plt.close()
+        return data 

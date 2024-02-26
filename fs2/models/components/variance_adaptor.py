@@ -312,7 +312,7 @@ class VarianceAdaptor(nn.Module):
     ):
         # x: B x T x C
         # Get log durations
-        logw = torch.log(durations + 1.0) * x_mask.squeeze(2)
+        logw = torch.log(durations + 1e-8) * x_mask.squeeze(2)
 
         if self.duration_predictor_type == "det":
             logw_hat = self.duration_predictor(x, x_mask)
@@ -360,24 +360,24 @@ class VarianceAdaptor(nn.Module):
         elif self.duration_predictor_type == "fm":
             logw_hat = self.fm_synthesise(x, x_mask)
             
-        w = (torch.exp(logw_hat) - 1.0) * x_mask.squeeze(2)
+        w = torch.exp(logw_hat) * x_mask.squeeze(2)
         w_ceil = torch.round(w) * d_factor
         dur_out = torch.clamp(w_ceil.long(), min=0) 
         
-
         log_pitch_out, pitch_emb = self.get_pitch_emb(x, x_mask, factor=p_factor)
+        log_pitch_out, _ = expand_lengths(log_pitch_out.unsqueeze(2), dur_out)        
         x = x + pitch_emb
-        pitch_out = (torch.exp(log_pitch_out) - 1.0) * x_mask.squeeze(2)
-        log_energy_out, energy_emb = self.get_energy_emb(x, x_mask, factor=e_factor)
-        x = x + energy_emb
-        energy_out = (torch.exp(log_energy_out) - 1.0) * x_mask.squeeze(2)
 
+        log_energy_out, energy_emb = self.get_energy_emb(x, x_mask, factor=e_factor)
+        log_energy_out, _ = expand_lengths(log_energy_out.unsqueeze(2), dur_out)
+        x = x + energy_emb
+        
         x, out_lens = expand_lengths(x, dur_out)
 
         return {
             'x_upscaled': x,
             'out_lens': out_lens,
             'dur_pred': dur_out,
-            'pitch_pred': pitch_out,
-            'energy_pred': energy_out,
+            'log_pitch_pred': log_pitch_out,
+            'log_energy_pred': log_energy_out,
         }
