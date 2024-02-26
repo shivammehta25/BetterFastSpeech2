@@ -203,7 +203,7 @@ class BaseLightningClass(LightningModule, ABC):
 
 
     def plot_mel(self, data, titles):
-        fig, axes = plt.subplots(len(data), 1, squeeze=False, figsize=(12, 3))
+        fig, axes = plt.subplots(len(data), 1, squeeze=False)
         if titles is None:
             titles = [None for i in range(len(data))]
         
