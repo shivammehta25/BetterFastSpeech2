@@ -5,6 +5,7 @@ when needed.
 Parameters from hparam.py will be used
 """
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -20,12 +21,13 @@ from tqdm.auto import tqdm
 
 from fs2.data.text_mel_datamodule import TextMelDataModule
 from fs2.utils.logging_utils import pylogger
+from fs2.utils.utils import to_numpy
 
 log = pylogger.get_pylogger(__name__)
 
 
 @torch.inference_mode()
-def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folder: Path, cfg: DictConfig):
+def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folder: Path, cfg: DictConfig, save_stats=False):
     """Generate durations from the model for each datapoint and save it in a folder
 
     Args:
@@ -33,10 +35,24 @@ def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folde
         model (nn.Module): MatchaTTS model
         device (torch.device): GPU or CPU
     """
+    x_lengths = 0
+
+    # Pitch stats
+    pitch_min = float("inf")
+    pitch_max = -float("inf")
     pitch_sum = 0
     pitch_sq_sum = 0
+    
+    # Energy stats
+    energy_min = float("inf")
+    energy_max = -float("inf")
     energy_sum = 0
     energy_sq_sum = 0
+    
+    # Mel stats
+    mel_sum = 0
+    mel_sq_sum = 0
+    total_mel_len = 0
     
     processed_folder_name = output_folder / cfg["name"]
     assert (processed_folder_name/ "durations").exists(), "Durations folder not found, it must be generated beforehand for this script to work"
@@ -47,15 +63,63 @@ def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folde
     for batch in tqdm(dataset, desc="🍵 Preprocessing durations 🍵"):
         # Get pre generated durations with Matcha-TTS
         for i in range(batch['x'].shape[0]):
+            filname = Path(batch['filepaths'][i]).stem
             inp_len = batch['x_lengths'][i]
             mel_len = batch['y_lengths'][i]
             pitch = batch['pitchs'][i][:inp_len]
-            np.save(pitch_folder / f"{i}.npy", pitch)
-            energy = batch['energys'][i][:inp_len]
-            np.save(energy_folder / f"{i}.npy", energy)
-            mel_spec = batch['y'][i][:, :mel_len]
-            np.save(mel_folder / f"{i}.npy", mel_spec) 
+            pitch_min = min(pitch_min, torch.min(pitch).item())
+            pitch_max = max(pitch_max, torch.max(pitch).item())
             
+            np.save(pitch_folder / f"{filname}.npy", to_numpy(pitch))
+            energy = batch['energys'][i][:inp_len]
+            energy_min = min(energy_min, torch.min(energy).item())
+            energy_max = max(energy_max, torch.max(energy).item())
+            np.save(energy_folder / f"{filname}.npy", to_numpy(energy))
+            mel_spec = batch['y'][i][:, :mel_len]
+            np.save(mel_folder / f"{filname}.npy", to_numpy(mel_spec))
+            
+            # normalisation statistics
+            pitch_sum += torch.sum(pitch)
+            pitch_sq_sum += torch.sum(torch.pow(pitch, 2))
+            energy_sum += torch.sum(energy)
+            energy_sq_sum += torch.sum(torch.pow(energy, 2))
+            x_lengths += inp_len
+            
+            mel_sum += torch.sum(mel_spec)
+            mel_sq_sum += torch.sum(mel_spec ** 2)
+            total_mel_len += mel_len
+    
+    # Save normalisation statistics
+    pitch_mean = pitch_sum / x_lengths
+    pitch_std = torch.sqrt((pitch_sq_sum / x_lengths) - torch.pow(pitch_mean, 2))
+    
+    energy_mean = energy_sum / x_lengths
+    energy_std = torch.sqrt((energy_sq_sum / x_lengths) - torch.pow(energy_mean,2))
+    
+    mel_mean = mel_sum / (total_mel_len * cfg['n_feats'])
+    mel_std = torch.sqrt((mel_sq_sum / (total_mel_len * cfg['n_feats'])) - torch.pow(mel_mean, 2))
+
+
+    stats = {
+                "pitch_min": pitch_min,
+                "pitch_max": pitch_max,
+                "pitch_mean": pitch_mean.item(),
+                "pitch_std": pitch_std.item(),
+                "energy_min": energy_min,
+                "energy_max": energy_max,
+                "energy_mean": energy_mean.item(),
+                "energy_std": energy_std.item(),
+                "mel_mean": mel_mean.item(),
+                "mel_std": mel_std.item(),
+    }
+
+    print(stats)
+    if save_stats:
+        with open(processed_folder_name / "stats.json", "w") as f:
+            json.dump(stats,f, indent=4) 
+    else:
+        print("Stats not saved!")
+    
     print("[+] Done! features saved to: ", processed_folder_name)
 
 def init_folders(processed_folder_name):
@@ -141,7 +205,7 @@ def main():
     try:
         print("Computing stats for training set if exists...")
         train_dataloader = text_mel_datamodule.train_dataloader()
-        generate_preprocessing_files(train_dataloader, output_folder, cfg)
+        generate_preprocessing_files(train_dataloader, output_folder, cfg, save_stats=True)
     except lightning.fabric.utilities.exceptions.MisconfigurationException:
         print("No training set found")
 

@@ -24,49 +24,70 @@ class FastSpeech2(BaseLightningClass):
         n_feats,
         encoder,
         decoder,
-        cfm,
+        variance_adaptor,
+        postnet,
         data_statistics,
-        out_size,
+        add_postnet=True,
         optimizer=None,
         scheduler=None,
-        prior_loss=True,
     ):
         super().__init__()
 
         self.save_hyperparameters(logger=False)
+
+        self.n_vocab = n_vocab
+        self.n_spks = n_spks
+        self.spk_emb_dim = spk_emb_dim
+        self.n_feats = n_feats
+        self.update_data_statistics(data_statistics)
         
         self.encoder = FFTransformer(
-            n_layer=in_fft_n_layers, n_head=in_fft_n_heads,
-            d_model=symbols_embedding_dim,
-            d_head=in_fft_d_head,
-            d_inner=in_fft_conv1d_filter_size,
-            kernel_size=in_fft_conv1d_kernel_size,
-            dropout=p_in_fft_dropout,
-            dropatt=p_in_fft_dropatt,
-            dropemb=p_in_fft_dropemb,
+            n_layer=encoder.n_layer,
+            n_head=encoder.n_head,
+            d_model=encoder.d_model,
+            d_head=encoder.d_head,
+            d_inner=encoder.d_inner,
+            kernel_size=encoder.kernel_size,
+            dropout=encoder.dropout,
+            dropatt=encoder.dropatt,
+            dropemb=encoder.dropemb,
             embed_input=True,
-            d_embed=symbols_embedding_dim,
-            n_embed=n_symbols,
-            padding_idx=padding_idx)
+            d_embed=encoder.d_model,
+            n_embed=n_vocab
+        )
         
-        self.variance_adapter = VarianceAdaptor()
+       
+        if n_spks > 1:    
+            self.spk_emb = torch.nn.Embedding(n_spks, spk_emb_dim) 
+
+        self.variance_adapter = VarianceAdaptor(variance_adaptor)
         
         self.decoder = FFTransformer(
-            n_layer=out_fft_n_layers, n_head=out_fft_n_heads,
-            d_model=symbols_embedding_dim,
-            d_head=out_fft_d_head,
-            d_inner=out_fft_conv1d_filter_size,
-            kernel_size=out_fft_conv1d_kernel_size,
-            dropout=p_out_fft_dropout,
-            dropatt=p_out_fft_dropatt,
-            dropemb=p_out_fft_dropemb,
+            n_layer=decoder.n_layer, 
+            n_head=decoder.n_head,
+            d_model=decoder.d_model,
+            d_head=decoder.d_head,
+            d_inner=decoder.d_inner,
+            kernel_size=decoder.kernel_size,
+            dropout=decoder.dropout,
+            dropatt=decoder.dropatt,
+            dropemb=decoder.dropemb,
             embed_input=False,
-            d_embed=symbols_embedding_dim
+            d_embed=decoder.d_model,
         )
         
         self.mel_layer = nn.Linear()
         
-        self.postnet = Postnet()
+        if add_postnet:
+            self.postnet = Postnet(
+                self.n_feats,
+                postnet.n_channels,
+                postnet.kernel_size,
+                postnet.n_layers,
+                postnet.dropout,
+            ) 
+        else:
+            self.postnet = None
         
        
     def forward(self, max_duration=75):

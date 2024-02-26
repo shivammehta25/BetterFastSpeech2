@@ -1,0 +1,4 @@
+n_channels: 512
+kernel_size: 5
+n_layers: 5
+dropout: 0.5

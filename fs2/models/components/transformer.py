@@ -164,8 +164,8 @@ class FFTransformer(nn.Module):
         self.padding_idx = padding_idx
 
         if embed_input:
-            self.word_emb = nn.Embedding(n_embed, d_embed or d_model,
-                                         padding_idx=self.padding_idx)
+            self.word_emb = nn.Embedding(n_embed, d_embed or d_model)
+            torch.nn.init.normal_(self.word_emb.weight, 0.0, self.d_model**-0.5)
         else:
             self.word_emb = None
 
@@ -187,7 +187,7 @@ class FFTransformer(nn.Module):
         else:
             inp = self.word_emb(dec_inp)
             # [bsz x L x 1]
-            mask = (dec_inp != self.padding_idx).unsqueeze(2)
+            mask = sequence_mask(seq_lens).unsqueeze(2) 
 
         pos_seq = torch.arange(inp.size(1), device=inp.device).to(inp.dtype)
         pos_emb = self.pos_emb(pos_seq) * mask

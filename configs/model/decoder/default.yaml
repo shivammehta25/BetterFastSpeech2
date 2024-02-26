@@ -1,7 +1,10 @@
-channels: [256, 256]
-dropout: 0.05
-attention_head_dim: 64
-n_blocks: 1
-num_mid_blocks: 2
-num_heads: 2
-act_fn: snakebeta
+decoder_type: FFTransformer
+n_layer: 4
+n_head: 2 
+d_model: 256
+d_head: 128 
+d_inner: 1024
+kernel_size: 3
+dropout: 0.1
+dropatt: 0.1
+dropemb: 0.0

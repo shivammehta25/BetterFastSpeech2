@@ -1,0 +1,20 @@
+defaults:
+  - ljspeech
+  - _self_
+
+name: tsg2
+train_filelist_path: data/filelists/cormac_train.txt
+valid_filelist_path: data/filelists/cormac_val.txt
+data_statistics:
+  pitch_min: 4.131408
+  pitch_max: 6.772876
+  pitch_mean: 4.999105
+  pitch_std: 0.181819
+  energy_min: 0.0
+  energy_max: 4.0253839
+  energy_mean: 0.005805
+  energy_std: 0.117526
+  mel_mean: -5.540797
+  mel_std: 2.116692
+
+processed_folder_path: data/processed_data/tsg2 # It should matche the name

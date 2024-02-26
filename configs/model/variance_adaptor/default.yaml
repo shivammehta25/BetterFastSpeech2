@@ -1,0 +1,7 @@
+duration_prediction_type: det
+d_model: 256
+n_bins: 256
+hidden_dim: 256
+kernel_size: 3
+dropout: 0.5
+

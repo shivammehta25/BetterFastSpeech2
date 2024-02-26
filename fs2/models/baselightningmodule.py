@@ -19,11 +19,18 @@ log = utils.get_pylogger(__name__)
 class BaseLightningClass(LightningModule, ABC):
     def update_data_statistics(self, data_statistics):
         if data_statistics is None:
-            data_statistics = {
-                "mel_mean": 0.0,
-                "mel_std": 1.0,
-            }
-
+            raise ValueError(f"data_statistics are not computed. \
+                             Please run python fs2/utils/preprocess.py -i <dataset.yaml> \
+                             to get statistics and update them in data_statistics field.")
+        
+        self.register_buffer("pitch_min", torch.tensor(data_statistics["pitch_min"]))
+        self.register_buffer("pitch_max", torch.tensor(data_statistics["pitch_max"])) 
+        self.register_buffer("pitch_mean", torch.tensor(data_statistics["pitch_mean"]))
+        self.register_buffer("pitch_std", torch.tensor(data_statistics["pitch_std"]))
+        self.register_buffer("energy_min", torch.tensor(data_statistics["energy_min"]))
+        self.register_buffer("energy_max", torch.tensor(data_statistics["energy_max"]))
+        self.register_buffer("energy_mean", torch.tensor(data_statistics["energy_mean"]))
+        self.register_buffer("energy_std", torch.tensor(data_statistics["energy_std"]))
         self.register_buffer("mel_mean", torch.tensor(data_statistics["mel_mean"]))
         self.register_buffer("mel_std", torch.tensor(data_statistics["mel_std"]))
 

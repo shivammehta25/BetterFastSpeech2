@@ -22,28 +22,28 @@ class VariancePredictor(nn.Module):
         super().__init__()
         self.conv1 = nn.Sequential(
             nn.Conv1d(
-                args.encoder_embed_dim,
-                args.var_pred_hidden_dim,
-                kernel_size=args.var_pred_kernel_size,
-                padding=(args.var_pred_kernel_size - 1) // 2,
+                args.d_model,
+                args.hidden_dim,
+                kernel_size=args.kernel_size,
+                padding=(args.kernel_size - 1) // 2,
             ),
             nn.ReLU(),
         )
-        self.ln1 = nn.LayerNorm(args.var_pred_hidden_dim)
+        self.ln1 = nn.LayerNorm(args.hidden_dim)
         self.dropout_module = nn.Dropout(
-            p=args.var_pred_dropout
+            p=args.dropout
         )
         self.conv2 = nn.Sequential(
             nn.Conv1d(
-                args.var_pred_hidden_dim,
-                args.var_pred_hidden_dim,
-                kernel_size=args.var_pred_kernel_size,
-                padding=1,
+                args.hidden_dim,
+                args.hidden_dim,
+                kernel_size=args.kernel_size,
+                padding=(args.kernel_size - 1) // 2,
             ),
             nn.ReLU(),
         )
-        self.ln2 = nn.LayerNorm(args.var_pred_hidden_dim)
-        self.proj = nn.Linear(args.var_pred_hidden_dim, 1)
+        self.ln2 = nn.LayerNorm(args.hidden_dim)
+        self.proj = nn.Linear(args.hidden_dim, 1)
 
     def forward(self, x):
         # Input: B x T x C; Output: B x T
@@ -80,7 +80,7 @@ class VarianceAdaptor(nn.Module):
         self.pitch_predictor = VariancePredictor(args)
         self.energy_predictor = VariancePredictor(args)
 
-        n_bins, steps = self.args.var_pred_n_bins, self.args.var_pred_n_bins - 1
+        n_bins, steps = self.args.n_bins, self.args.n_bins - 1
         self.pitch_bins = torch.linspace(args.pitch_min, args.pitch_max, steps)
         self.embed_pitch = Embedding(n_bins, args.encoder_embed_dim)
         self.energy_bins = torch.linspace(args.energy_min, args.energy_max, steps)

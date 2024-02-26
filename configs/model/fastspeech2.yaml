@@ -1,15 +1,15 @@
 defaults:
   - _self_
   - encoder: default.yaml
+  - variance_adaptor: default.yaml
   - decoder: default.yaml
-  - cfm: default.yaml
+  - postnet: default.yaml
   - optimizer: adam.yaml
 
-_target_: matcha.models.matcha_tts.MatchaTTS
+_target_: fs2.models.fastspeech2.FastSpeech2
 n_vocab: 178
 n_spks: ${data.n_spks}
-spk_emb_dim: 64
+spk_emb_dim: ${model.encoder.d_model}
 n_feats: 80
 data_statistics: ${data.data_statistics}
-out_size: null # Must be divisible by 4
-prior_loss: true
+add_postnet: true
