@@ -1,5 +1,9 @@
 duration_prediction_type: det
-d_model: 256
+pitch_min: ${data.data_statistics.pitch_min}
+pitch_max: ${data.data_statistics.pitch_max}
+energy_min: ${data.data_statistics.energy_min}
+energy_max: ${data.data_statistics.energy_max}
+d_model: ${model.encoder.d_model} 
 n_bins: 256
 hidden_dim: 256
 kernel_size: 3

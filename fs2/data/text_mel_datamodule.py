@@ -318,8 +318,8 @@ class TextMelBatchCollate:
             y_, x_ = item["y"], item["x"]
             y_lengths.append(y_.shape[-1])
             x_lengths.append(x_.shape[-1])
-            y[i, :, : y_.shape[-1]] = y_
-            x[i, : x_.shape[-1]] = x_
+            y[i, :, : y_.shape[-1]] = to_torch(y_, torch.float32)
+            x[i, : x_.shape[-1]] = to_torch(x_, torch.long)
             spks.append(item["spk"])
             
             pitchs[i, : item["pitch"].shape[-1]] = to_torch(item["pitch"], torch.float)

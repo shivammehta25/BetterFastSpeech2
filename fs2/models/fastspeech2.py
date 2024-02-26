@@ -76,7 +76,7 @@ class FastSpeech2(BaseLightningClass):
             d_embed=decoder.d_model,
         )
         
-        self.mel_layer = nn.Linear()
+        self.out_proj = nn.Linear(decoder.d_model, n_feats)
         
         if add_postnet:
             self.postnet = Postnet(

@@ -82,9 +82,9 @@ class VarianceAdaptor(nn.Module):
 
         n_bins, steps = self.args.n_bins, self.args.n_bins - 1
         self.pitch_bins = torch.linspace(args.pitch_min, args.pitch_max, steps)
-        self.embed_pitch = Embedding(n_bins, args.encoder_embed_dim)
+        self.embed_pitch = Embedding(n_bins, args.d_model)
         self.energy_bins = torch.linspace(args.energy_min, args.energy_max, steps)
-        self.embed_energy = Embedding(n_bins, args.encoder_embed_dim)
+        self.embed_energy = Embedding(n_bins, args.d_model)
 
     def get_pitch_emb(self, x, tgt=None, factor=1.0):
         out = self.pitch_predictor(x)

@@ -71,7 +71,6 @@ class BaseLightningClass(LightningModule, ABC):
             y=y,
             y_lengths=y_lengths,
             spks=spks,
-            out_size=self.out_size,
         )
         return {
             "dur_loss": dur_loss,
