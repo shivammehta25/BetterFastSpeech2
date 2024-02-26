@@ -10,10 +10,10 @@ data_statistics:
   pitch_max: 6.679795
   pitch_mean: 4.968821
   pitch_std: 0.276310
-  energy_min: 0.0
-  energy_max: 4.122667
-  energy_mean: 0.024676
-  energy_std: 0.284986
+  energy_min: 0.011087 
+  energy_max: 4.9622020 
+  energy_mean: 0.024676 
+  energy_std: 0.8979947  
   mel_mean: -4.715791
   mel_std: 2.124478
 processed_folder_path: data/processed_data/ryan # It should matche the name

@@ -153,9 +153,9 @@ class BaseLightningClass(LightningModule, ABC):
             if self.current_epoch == 0:
                 log.debug("Plotting original samples")
                 for i in range(2):
-                    y = one_batch["y"][i].unsqueeze(0).to(self.device)
+                    y = denormalize(one_batch["y"][i].unsqueeze(0).to(self.device), self.mel_mean, self.mel_std)
                     self.logger.experiment.add_image(
-                        f"original/{i}",
+                        f"mel/original_{i}",
                         plot_tensor(y.squeeze().cpu()),
                         self.current_epoch,
                         dataformats="HWC",
@@ -168,7 +168,7 @@ class BaseLightningClass(LightningModule, ABC):
                     original_pitch, _ = expand_lengths(original_pitch.unsqueeze(2), durations.unsqueeze(0))
                     
                     self.logger.experiment.add_image(
-                        f"original/pitch_{i}",
+                        f"pitch/original_{i}",
                         plot_line(
                             original_pitch.squeeze().cpu(),
                             min_value=invert_log_norm(self.pitch_min, self.pitch_mean, self.pitch_std).cpu().item(),
@@ -184,7 +184,7 @@ class BaseLightningClass(LightningModule, ABC):
                     original_energy, _ = expand_lengths(original_energy.unsqueeze(2), durations.unsqueeze(0))
                     
                     self.logger.experiment.add_image(
-                        f"original/energy_{i}",
+                        f"energy/original_{i}",
                         plot_line(
                             original_energy.squeeze().cpu(),
                             min_value=invert_log_norm(self.energy_min, self.energy_mean, self.energy_std).cpu().item(),
@@ -203,31 +203,46 @@ class BaseLightningClass(LightningModule, ABC):
                 decoder_output, y_pred = output["decoder_output"], output["y_pred"]
                 
                 self.logger.experiment.add_image(
-                    f"generated/dec_output_{i}",
+                    f"dec_output/{i}",
                     plot_tensor(decoder_output.squeeze().cpu()),
                     self.current_epoch,
                     dataformats="HWC",
                 )
                 self.logger.experiment.add_image(
-                    f"generated/final_mel_{i}",
+                    f"mel/generated_{i}",
                     plot_tensor(y_pred.squeeze().cpu()),
                     self.current_epoch,
                     dataformats="HWC",
                 )
+
+                durations = output['dur_pred'].squeeze(0)
                 
-                
-                
-                energy_pred = output["pitch_pred"], output["energy_pred"]
+                pitch_pred = torch.exp(output["pitch_pred"]) - 1.0
+                pitch_pred, _ = expand_lengths(pitch_pred.unsqueeze(2), durations.unsqueeze(0))
                 self.logger.experiment.add_image(
                     f"pitch/gen_{i}",
                     plot_line(
                         pitch_pred.squeeze().cpu(),
-                        min_value=denormalize(self.pitch_min, self.pitch_mean, self.pitch_std),
-                        max_value=denormalize(self.pitch_max, self.pitch_mean, self.pitch_std)
+                        min_value=denormalize(self.pitch_min, self.pitch_mean, self.pitch_std).cpu().item(),
+                        max_value=denormalize(self.pitch_max, self.pitch_mean, self.pitch_std).cpu().item()
                     ),
                     self.current_epoch,
                     dataformats="HWC",
                 )
+                
+                energy_pred = torch.exp(output["energy_pred"]) - 1.0
+                energy_pred, _ = expand_lengths(energy_pred.unsqueeze(2), durations.unsqueeze(0))
+                self.logger.experiment.add_image(
+                    f"energy/gen_{i}",
+                    plot_line(
+                        energy_pred.squeeze().cpu(),
+                        min_value=denormalize(self.energy_min, self.energy_mean, self.energy_std).cpu().item(),
+                        max_value=denormalize(self.energy_max, self.energy_mean, self.energy_std).cpu().item()
+                    ),
+                    self.current_epoch,
+                    dataformats="HWC",
+                )
+
 
     def on_before_optimizer_step(self, optimizer):
         self.log_dict({f"grad_norm/{k}": v for k, v in grad_norm(self, norm_type=2).items()})

@@ -101,16 +101,16 @@ def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folde
 
 
     stats = {
-                "pitch_min": pitch_min,
-                "pitch_max": pitch_max,
-                "pitch_mean": pitch_mean.item(),
-                "pitch_std": pitch_std.item(),
-                "energy_min": energy_min,
-                "energy_max": energy_max,
-                "energy_mean": energy_mean.item(),
-                "energy_std": energy_std.item(),
-                "mel_mean": mel_mean.item(),
-                "mel_std": mel_std.item(),
+                "pitch_min": round(pitch_min, 6),
+                "pitch_max": round(pitch_max, 6),
+                "pitch_mean": round(pitch_mean.item(), 6),
+                "pitch_std": round(pitch_std.item(), 6),
+                "energy_min": round(energy_min, 6),
+                "energy_max": round(energy_max, 6),
+                "energy_mean": round(energy_mean.item(), 6),
+                "energy_std": round(energy_std.item(), 6),
+                "mel_mean": round(mel_mean.item(), 6),
+                "mel_std": round(mel_std.item(), 6),
     }
 
     print(stats)

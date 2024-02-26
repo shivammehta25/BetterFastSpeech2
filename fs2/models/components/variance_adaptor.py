@@ -365,10 +365,10 @@ class VarianceAdaptor(nn.Module):
         dur_out = torch.clamp(w_ceil.long(), min=0) 
         
 
-        log_pitch_out, pitch_emb = self.get_pitch_emb(x, x_mask, p_factor=p_factor)
+        log_pitch_out, pitch_emb = self.get_pitch_emb(x, x_mask, factor=p_factor)
         x = x + pitch_emb
         pitch_out = (torch.exp(log_pitch_out) - 1.0) * x_mask.squeeze(2)
-        log_energy_out, energy_emb = self.get_energy_emb(x, x_mask, e_factor=e_factor)
+        log_energy_out, energy_emb = self.get_energy_emb(x, x_mask, factor=e_factor)
         x = x + energy_emb
         energy_out = (torch.exp(log_energy_out) - 1.0) * x_mask.squeeze(2)
 

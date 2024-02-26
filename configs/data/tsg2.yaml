@@ -10,10 +10,10 @@ data_statistics:
   pitch_max: 6.772876
   pitch_mean: 4.999105
   pitch_std: 0.181819
-  energy_min: 0.0
-  energy_max: 4.0253839
-  energy_mean: 0.005805
-  energy_std: 0.117526
+  energy_min: 0.0252166
+  energy_max: 5.4764504
+  energy_mean: 2.7021007
+  energy_std: 1.0669150
   mel_mean: -5.540797
   mel_std: 2.116692
 

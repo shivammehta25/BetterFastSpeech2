@@ -20,10 +20,10 @@ data_statistics:  # Computed for ljspeech dataset
   pitch_max: 6.678389
   pitch_mean: 5.325599
   pitch_std: 0.239258
-  energy_min: 0.0
-  energy_max: 3.766820
-  energy_mean: 0.012330
-  energy_std: 0.018593
+  energy_min: 0.041335
+  energy_max: 5.511516
+  energy_mean: 2.741852
+  energy_std: 0.950961
   mel_mean: -5.517057
   mel_std: 2.064340
 seed: ${seed}

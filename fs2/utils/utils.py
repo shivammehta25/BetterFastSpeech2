@@ -151,11 +151,12 @@ def plot_tensor(tensor):
     plt.close()
     return data
 
-def plot_line(tensor, min_value, max_value):
+def plot_line(tensor, min_value, max_value, y_log=True):
     plt.style.use("default")
     fig, ax = plt.subplots(figsize=(12, 3))
     ax.plot(tensor)
     ax.set_ylim(min_value, max_value)
+    ax.set_yscale("log" if y_log else "linear")
     plt.tight_layout()
     fig.canvas.draw()
     data = save_figure_to_numpy(fig)

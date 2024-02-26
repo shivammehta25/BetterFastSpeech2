@@ -10,10 +10,10 @@ data_statistics:
   pitch_max: 6.569316
   pitch_mean: 4.681756
   pitch_std: 0.253846
-  energy_min: 0.0
-  energy_max: 3.922805
-  energy_mean: 0.018027
-  energy_std: 0.217036
+  energy_min: 0.003330
+  energy_max: 4.636522 
+  energy_mean: 2.797919
+  energy_std: 0.938707
   mel_mean: -5.882903
   mel_std: 2.064340
 processed_folder_path: data/processed_data/joe_spont_only # It should matche the name
