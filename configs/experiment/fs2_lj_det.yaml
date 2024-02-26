@@ -15,4 +15,4 @@ run_name: fs2_lj_det
 
 
 trainer:
-  max_epochs: 3200
+  max_epochs: 3001

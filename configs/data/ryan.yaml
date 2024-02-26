@@ -6,14 +6,14 @@ name: ryan
 train_filelist_path: data/filelists/ryan_train.csv
 valid_filelist_path: data/filelists/ryan_val.csv
 data_statistics:
-  pitch_min: 4.0794425
-  pitch_max: 6.679795
-  pitch_mean: 4.968821
-  pitch_std: 0.276310
-  energy_min: 0.011087 
-  energy_max: 4.9622020 
-  energy_mean: 0.024676 
-  energy_std: 0.8979947  
-  mel_mean: -4.715791
-  mel_std: 2.124478
+    pitch_min: 58.112518
+    pitch_max: 795.156067
+    pitch_mean: 148.475662
+    pitch_std: 42.28849
+    energy_min: 0.01115
+    energy_max: 141.908127
+    energy_mean: 34.910458
+    energy_std: 24.780809
+    mel_mean: -4.715792
+    mel_std: 2.124477
 processed_folder_path: data/processed_data/ryan # It should matche the name

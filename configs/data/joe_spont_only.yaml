@@ -6,14 +6,14 @@ name: joe_spont_only
 train_filelist_path: data/filelists/joe_spontonly_train.txt 
 valid_filelist_path: data/filelists/joe_spontonly_val.txt
 data_statistics:
-  pitch_min: 4.094728
-  pitch_max: 6.569316
-  pitch_mean: 4.681756
-  pitch_std: 0.253846
-  energy_min: 0.003330
-  energy_max: 4.636522 
-  energy_mean: 2.797919
-  energy_std: 0.938707
-  mel_mean: -5.882903
-  mel_std: 2.064340
+    pitch_min: 59.023064
+    pitch_max: 711.88269
+    pitch_mean: 110.913361
+    pitch_std: 35.062332
+    energy_min: 0.003337
+    energy_max: 102.184875
+    energy_mean: 21.875431
+    energy_std: 15.222904
+    mel_mean: -5.882901
+    mel_std: 2.458269
 processed_folder_path: data/processed_data/joe_spont_only # It should matche the name

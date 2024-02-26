@@ -2,8 +2,8 @@ _target_: fs2.data.text_mel_datamodule.TextMelDataModule
 name: ljspeech
 train_filelist_path: data/filelists/ljs_audio_text_train_filelist.txt
 valid_filelist_path: data/filelists/ljs_audio_text_val_filelist.txt
-batch_size: 32
-num_workers: 20
+batch_size: 64 
+num_workers: 10
 pin_memory: True
 cleaners: [english_cleaners2]
 add_blank: True
