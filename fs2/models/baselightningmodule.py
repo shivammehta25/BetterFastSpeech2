@@ -168,7 +168,7 @@ class BaseLightningClass(LightningModule, ABC):
                      
                     self.logger.experiment.add_image(
                         f"original/mel_{i}",
-                        self.plot_mel([(y.squeeze().cpu().numpy(), original_pitch.squeeze(), original_energy.squeeze())], [f"Data_{i}"]),
+                        self.plot_mel([(y.squeeze().cpu().numpy(), original_pitch.cpu().squeeze(), original_energy.cpu().squeeze())], [f"Data_{i}"]),
                         self.current_epoch,
                         dataformats="HWC",
                     )
@@ -191,7 +191,7 @@ class BaseLightningClass(LightningModule, ABC):
 
                 self.logger.experiment.add_image(
                     f"generated/mel_{i}",
-                    self.plot_mel([(y_pred.squeeze().cpu().numpy().T, pitch_pred.squeeze(), energy_pred.squeeze())], [f"Generated_{i}"]),
+                    self.plot_mel([(y_pred.squeeze().cpu().numpy().T, pitch_pred.cpu().squeeze(), energy_pred.cpu().squeeze())], [f"Generated_{i}"]),
                     self.current_epoch,
                     dataformats="HWC",
                 )
@@ -203,7 +203,7 @@ class BaseLightningClass(LightningModule, ABC):
 
 
     def plot_mel(self, data, titles):
-        fig, axes = plt.subplots(len(data), 1, squeeze=False)
+        fig, axes = plt.subplots(len(data), 1, squeeze=False, figsize=(12, 3))
         if titles is None:
             titles = [None for i in range(len(data))]
         
@@ -250,7 +250,6 @@ class BaseLightningClass(LightningModule, ABC):
                 right=True,
                 labelright=True,
             )
-        plt.tight_layout()
         fig.canvas.draw()
         data = save_figure_to_numpy(fig)
         plt.close()
