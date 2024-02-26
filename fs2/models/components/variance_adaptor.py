@@ -182,7 +182,7 @@ class VarianceAdaptor(nn.Module):
         if self.duration_predictor_type == "det":
             self.duration_predictor = VariancePredictor(args)
         elif self.duration_predictor_type == "fm":
-            self.estimator = DurationPredictorNetworkWithTimeStep(
+            self.duration_predictor = DurationPredictorNetworkWithTimeStep(
             1 + args.d_model ,  # 1 for the durations and n_channels for encoder outputs
             args.hidden_dim,
             args.kernel_size,
@@ -236,7 +236,7 @@ class VarianceAdaptor(nn.Module):
             y = (1 - (1 - self.sigma_min) * t) * z + t * x1
             u = x1 - (1 - self.sigma_min) * z
 
-            loss = F.mse_loss(self.dp(y, mask, enc_outputs, t.squeeze()), u, reduction="sum") / (
+            loss = F.mse_loss(self.duration_predictor(y, mask, enc_outputs, t.squeeze()), u, reduction="sum") / (
                 torch.sum(mask) * u.shape[1]
             )
             return loss
@@ -291,7 +291,7 @@ class VarianceAdaptor(nn.Module):
         sol = []
 
         for step in range(1, len(t_span)):
-            dphi_dt = self.estimator(x, mask, enc_outputs, t)
+            dphi_dt = self.duration_predictor(x, mask, enc_outputs, t)
 
             x = x + dt * dphi_dt
             t = t + dt
@@ -299,7 +299,7 @@ class VarianceAdaptor(nn.Module):
             if step < len(t_span) - 1:
                 dt = t_span[step + 1] - t
 
-        return sol[-1]
+        return sol[-1].squeeze(1)
 
     
     def forward(
