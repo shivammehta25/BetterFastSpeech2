@@ -33,10 +33,10 @@ class PositionwiseConvFF(nn.Module):
         self.dropout = dropout
 
         self.CoreNet = nn.Sequential(
-            nn.Conv1d(d_model, d_inner, kernel_size, 1, (kernel_size // 2)),
+            nn.Conv1d(d_model, d_inner, kernel_size[0], padding=(kernel_size[0] - 1) // 2 ),
             nn.ReLU(),
             # nn.Dropout(dropout),  # worse convergence
-            nn.Conv1d(d_inner, d_model, kernel_size, 1, (kernel_size // 2)),
+            nn.Conv1d(d_inner, d_model, kernel_size[1], 1, padding=(kernel_size[1] - 1) // 2),
             nn.Dropout(dropout),
         )
         self.layer_norm = nn.LayerNorm(d_model)
