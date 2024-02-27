@@ -3,7 +3,7 @@ name: ljspeech
 train_filelist_path: data/filelists/ljs_audio_text_train_filelist.txt
 valid_filelist_path: data/filelists/ljs_audio_text_val_filelist.txt
 batch_size: 64 
-num_workers: 10
+num_workers: 20
 pin_memory: True
 cleaners: [english_cleaners2]
 add_blank: True
