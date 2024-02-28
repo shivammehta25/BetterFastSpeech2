@@ -1,0 +1,23 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=multispeaker
+
+defaults:
+  - override /data: joe_spont_only.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["joe"]
+
+run_name: fs2_joe_fm
+
+
+
+model:
+  variance_adaptor:
+    duration_prediction_type: fm
+
+trainer:
+  max_epochs: 3001
