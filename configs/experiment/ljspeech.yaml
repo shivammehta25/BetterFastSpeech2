@@ -11,8 +11,8 @@ defaults:
 
 tags: ["ljspeech"]
 
-run_name: fs2_lj_det 
+run_name: LJSpeech
 
 
 trainer:
-  max_epochs: 3001
+  max_steps: 2000000
