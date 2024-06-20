@@ -22,6 +22,7 @@ Changes from the original architecture:
     - To save myself from the pain of setting up and training MFA
   - Used IPA phonemes with blanks in between phones.
   - No LR decay
+  - Duration prediction in log domain
 
 
 ## Installation
