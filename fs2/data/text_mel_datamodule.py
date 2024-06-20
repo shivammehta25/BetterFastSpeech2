@@ -44,7 +44,6 @@ class TextMelDataModule(LightningDataModule):
         data_statistics,
         seed,
         generate_properties,
-        processed_folder_path
     ):
         super().__init__()
 
@@ -75,7 +74,6 @@ class TextMelDataModule(LightningDataModule):
             self.hparams.data_statistics,
             self.hparams.seed,
             self.hparams.generate_properties,
-            self.hparams.processed_folder_path
         )
         self.validset = TextMelDataset(  # pylint: disable=attribute-defined-outside-init
             self.hparams.valid_filelist_path,
@@ -92,7 +90,6 @@ class TextMelDataModule(LightningDataModule):
             self.hparams.data_statistics,
             self.hparams.seed,
             self.hparams.generate_properties,
-            self.hparams.processed_folder_path
         )
 
     def train_dataloader(self):
@@ -145,7 +142,6 @@ class TextMelDataset(torch.utils.data.Dataset):
         data_statistics=None,
         seed=None,
         generate_properties=True,
-        processed_folder_path=None
     ):
         self.filepaths_and_text = parse_filelist(filelist_path)
         self.n_spks = n_spks
@@ -160,7 +156,7 @@ class TextMelDataset(torch.utils.data.Dataset):
         self.f_max = f_max
         self.data_statistics = data_statistics
         self.generate_properties = generate_properties
-        self.processed_folder_path = processed_folder_path
+        self.processed_folder_path = Path(filelist_path).parent 
 
         random.seed(seed)
         random.shuffle(self.filepaths_and_text)
@@ -246,7 +242,6 @@ class TextMelDataset(torch.utils.data.Dataset):
             text = self.get_text(text, add_blank=self.add_blank)
             phoneme_durations = self.load_durations(filepath, text)
             assert len(phoneme_durations) == len(text)
-            #! TODO: implement duration and pitch loading
             pitch = np.load(Path(self.processed_folder_path) / 'pitch' / Path(Path(filepath).stem).with_suffix(".npy"))
             pitch = normalize(pitch, self.data_statistics['pitch_mean'], self.data_statistics['pitch_std'])
             assert len(pitch) == len(text)

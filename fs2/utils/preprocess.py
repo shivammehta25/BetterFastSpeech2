@@ -27,7 +27,7 @@ log = pylogger.get_pylogger(__name__)
 
 
 @torch.inference_mode()
-def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folder: Path, cfg: DictConfig, save_stats=False):
+def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folder: Path, cfg: DictConfig, save_stats=True):
     """Generate durations from the model for each datapoint and save it in a folder
 
     Args:
@@ -54,9 +54,8 @@ def generate_preprocessing_files(dataset: torch.utils.data.Dataset, output_folde
     mel_sq_sum = 0
     total_mel_len = 0
     
-    processed_folder_name = output_folder / cfg["name"]
+    processed_folder_name = output_folder 
     assert (processed_folder_name/ "durations").exists(), "Durations folder not found, it must be generated beforehand for this script to work"
-    
     pitch_folder, energy_folder, mel_folder = init_folders(processed_folder_name)
     
     # Benefit of doing it over batch is the added speed due to multiprocessing
@@ -189,7 +188,7 @@ def main():
     if args.output_folder is not None:
         output_folder = Path(args.output_folder)
     else:
-        output_folder = Path("data") / "processed_data" 
+        output_folder = Path(cfg["train_filelist_path"]).parent
 
     # if os.path.exists(output_folder) and not args.force:
     #     print("Folder already exists. Use -f to force overwrite")

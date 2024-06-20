@@ -26,7 +26,7 @@ phonemizer      # phonemization of text
 tensorboard
 librosa
 Cython
-numpy
+numpy==1.26.4
 einops
 inflect
 Unidecode

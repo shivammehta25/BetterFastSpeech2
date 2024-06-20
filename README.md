@@ -1,8 +1,7 @@
 <div align="center">
 
-# 🍵 Matcha-TTS: A fast TTS architecture with conditional flow matching
+# BetterFastSpeech 2
 
-### [Shivam Mehta](https://www.kth.se/profile/smehta), [Ruibo Tu](https://www.kth.se/profile/ruibo), [Jonas Beskow](https://www.kth.se/profile/beskow), [Éva Székely](https://www.kth.se/profile/szekely), and [Gustav Eje Henter](https://people.kth.se/~ghe/)
 
 [![python](https://img.shields.io/badge/-Python_3.10-blue?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3100/)
 [![pytorch](https://img.shields.io/badge/PyTorch_2.0+-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
@@ -11,51 +10,34 @@
 [![black](https://img.shields.io/badge/Code%20Style-Black-black.svg?labelColor=gray)](https://black.readthedocs.io/en/stable/)
 [![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
-<p style="text-align: center;">
-  <img src="https://shivammehta25.github.io/Matcha-TTS/images/logo.png" height="128"/>
-</p>
 
 </div>
 
-> This is the official code implementation of 🍵 Matcha-TTS [ICASSP 2024].
+It is the ordinary FastSpeech 2 architecture with some modifications. I just wanted to make the code base better and more readable. And finally have an open source implementation of [FastSpeech 2](https://arxiv.org/abs/2006.04558) that doesn't sounds bad and is easier to hack and work with.
 
-We propose 🍵 Matcha-TTS, a new approach to non-autoregressive neural TTS, that uses [conditional flow matching](https://arxiv.org/abs/2210.02747) (similar to [rectified flows](https://arxiv.org/abs/2209.03003)) to speed up ODE-based speech synthesis. Our method:
+If you like this you will love [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)
 
-- Is probabilistic
-- Has compact memory footprint
-- Sounds highly natural
-- Is very fast to synthesise from
+Changes from the original architecture: 
+  - Instead of using MFA, I obtained alignment from a pretrained Matcha-TTS model. 
+    - To save myself from the pain of setting up and training MFA
+  - Used IPA phonemes with blanks in between phones.
+  - No LR decay
 
-Check out our [demo page](https://shivammehta25.github.io/Matcha-TTS) and read [our ICASSP 2024 paper](https://arxiv.org/abs/2309.03199) for more details.
-
-[Pre-trained models](https://drive.google.com/drive/folders/17C_gYgEHOxI5ZypcfE_k1piKCtyR0isJ?usp=sharing) will be automatically downloaded with the CLI or gradio interface.
-
-You can also [try 🍵 Matcha-TTS in your browser on HuggingFace 🤗 spaces](https://huggingface.co/spaces/shivammehta25/Matcha-TTS).
-
-## Teaser video
-
-[![Watch the video](https://img.youtube.com/vi/xmvJkz3bqw0/hqdefault.jpg)](https://youtu.be/xmvJkz3bqw0)
 
 ## Installation
 
 1. Create an environment (suggested but optional)
 
 ```
-conda create -n matcha-tts python=3.10 -y
-conda activate matcha-tts
+conda create -n betterfs2 python=3.10 -y
+conda activate betterfs2
 ```
 
-2. Install Matcha TTS using pip or from source
+2. Install from source
 
 ```bash
-pip install matcha-tts
-```
-
-from source
-
-```bash
-pip install git+https://github.com/shivammehta25/Matcha-TTS.git
-cd Matcha-TTS
+pip install git+https://github.com/shivammehta25/BetterFastSpeech2.git
+cd BetterFastSpeech2
 pip install -e .
 ```
 
@@ -63,97 +45,79 @@ pip install -e .
 
 ```bash
 # This will download the required models
-matcha-tts --text "<INPUT TEXT>"
+betterfs2 --text "<INPUT TEXT>"
 ```
 
 or
 
 ```bash
-matcha-tts-app
+betterfs2-tts-app
 ```
-
 or open `synthesis.ipynb` on jupyter notebook
 
-### CLI Arguments
-
-- To synthesise from given text, run:
-
-```bash
-matcha-tts --text "<INPUT TEXT>"
-```
-
-- To synthesise from a file, run:
-
-```bash
-matcha-tts --file <PATH TO FILE>
-```
-
-- To batch synthesise from a file, run:
-
-```bash
-matcha-tts --file <PATH TO FILE> --batched
-```
-
-Additional arguments
-
-- Speaking rate
-
-```bash
-matcha-tts --text "<INPUT TEXT>" --speaking_rate 1.0
-```
-
-- Sampling temperature
-
-```bash
-matcha-tts --text "<INPUT TEXT>" --temperature 0.667
-```
-
-- Euler ODE solver steps
-
-```bash
-matcha-tts --text "<INPUT TEXT>" --steps 10
-```
-
 ## Train with your own dataset
-
 Let's assume we are training with LJ Speech
 
 1. Download the dataset from [here](https://keithito.com/LJ-Speech-Dataset/), extract it to `data/LJSpeech-1.1`, and prepare the file lists to point to the extracted data like for [item 5 in the setup of the NVIDIA Tacotron 2 repo](https://github.com/NVIDIA/tacotron2#setup).
 
-2. Clone and enter the Matcha-TTS repository
 
+2. [Train a Matcha-TTS model to extract durations or if you have a pretrained model, you can use that as well.](https://github.com/shivammehta25/Matcha-TTS/wiki/Improve-GPU-utilisation-by-extracting-phoneme-alignments)
+
+Your data directory should look like:
 ```bash
-git clone https://github.com/shivammehta25/Matcha-TTS.git
-cd Matcha-TTS
+data/
+└── LJSpeech-1.1
+    ├── durations/ # Here
+    ├── metadata.csv
+    ├── README
+    ├── test.txt
+    ├── train.txt
+    ├── val.txt
+    └── wavs/
 ```
 
-3. Install the package from source
+3. Clone and enter the BetterFastSpeech2 repository
+
+```bash
+git clone https://github.com/shivammehta25/BetterFastSpeech2.git
+cd BetterFastSpeech2 
+```
+
+4. Install the package from source
 
 ```bash
 pip install -e .
 ```
 
-4. Go to `configs/data/ljspeech.yaml` and change
+5. Go to `configs/data/ljspeech.yaml` and change
 
 ```yaml
-train_filelist_path: data/filelists/ljs_audio_text_train_filelist.txt
-valid_filelist_path: data/filelists/ljs_audio_text_val_filelist.txt
+train_filelist_path: data/LJSpeech-1.1/train.txt
+valid_filelist_path: data/LJSpeech-1.1/val.txt
 ```
 
 5. Generate normalisation statistics with the yaml file of dataset configuration
 
 ```bash
-matcha-data-stats -i ljspeech.yaml
+python fs2/utils/preprocess.py -i ljspeech
 # Output:
-#{'mel_mean': -5.53662231756592, 'mel_std': 2.1161014277038574}
+#{'pitch_min': 67.836174, 'pitch_max': 578.637146, 'pitch_mean': 207.001846, 'pitch_std': 52.747742, 'energy_min': 0.084354, 'energy_max': 190.849121, 'energy_mean': 21.330254, 'energy_std': 17.663319, 'mel_mean': -5.554245, 'mel_std': 2.059021}
 ```
 
 Update these values in `configs/data/ljspeech.yaml` under `data_statistics` key.
 
 ```bash
 data_statistics:  # Computed for ljspeech dataset
-  mel_mean: -5.536622
-  mel_std: 2.116101
+    pitch_min: 67.836174 
+    pitch_max: 792.962036
+    pitch_mean: 211.046158
+    pitch_std: 53.012085
+    energy_min: 0.023226
+    energy_max: 241.037918
+    energy_mean: 21.821531
+    energy_std: 18.17124
+    mel_mean: -5.517035
+    mel_std: 2.064413
 ```
 
 to the paths of your train and validation filelists.
@@ -161,34 +125,26 @@ to the paths of your train and validation filelists.
 6. Run the training script
 
 ```bash
-make train-ljspeech
-```
-
-or
-
-```bash
-python matcha/train.py experiment=ljspeech
-```
-
-- for a minimum memory run
-
-```bash
-python matcha/train.py experiment=ljspeech_min_memory
+python fs2/train.py experiment=ljspeech
 ```
 
 - for multi-gpu training, run
 
 ```bash
-python matcha/train.py experiment=ljspeech trainer.devices=[0,1]
+python fs2/train.py experiment=ljspeech trainer.devices=[0,1]
 ```
 
 7. Synthesise from the custom trained model
 
 ```bash
-matcha-tts --text "<INPUT TEXT>" --checkpoint_path <PATH TO CHECKPOINT>
+betterfs2 --text "<INPUT TEXT>" --checkpoint_path <PATH TO CHECKPOINT>
 ```
 
+
+
 ## ONNX support
+
+> Have to update but it is most likely the same as Matcha-TTS
 
 > Special thanks to [@mush42](https://github.com/mush42) for implementing ONNX export and inference support.
 

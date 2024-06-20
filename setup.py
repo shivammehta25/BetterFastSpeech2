@@ -14,7 +14,7 @@ with open(os.path.join(cwd, "fs2", "VERSION")) as fin:
 setup(
     name="fs2",
     version=version,
-    description="I got pissed at all the other implementations for not working, so I made my own.",
+    description="I got pissed at all the other implementations for not working properly, so I made my own.",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Shivam Mehta",

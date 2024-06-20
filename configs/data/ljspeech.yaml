@@ -1,7 +1,7 @@
 _target_: fs2.data.text_mel_datamodule.TextMelDataModule
 name: ljspeech
-train_filelist_path: data/filelists/ljs_audio_text_train_filelist.txt
-valid_filelist_path: data/filelists/ljs_audio_text_val_filelist.txt
+train_filelist_path: data/LJSpeech-1.1/train.txt 
+valid_filelist_path: data/LJSpeech-1.1/val.txt
 batch_size: 64 
 num_workers: 20
 pin_memory: True
@@ -16,16 +16,15 @@ win_length: 1024
 f_min: 0
 f_max: 8000
 data_statistics:  # Computed for ljspeech dataset
-    pitch_min: 62.217014
-    pitch_max: 794.037903
-    pitch_mean: 210.625992
-    pitch_std: 53.129742
-    energy_min: 0.042202
-    energy_max: 246.526184
-    energy_mean: 21.310959
-    energy_std: 17.138121
-    mel_mean: -5.51704
-    mel_std: 2.06439
+    pitch_min: 67.836174 
+    pitch_max: 792.962036
+    pitch_mean: 211.046158
+    pitch_std: 53.012085
+    energy_min: 0.023226
+    energy_max: 241.037918
+    energy_mean: 21.821531
+    energy_std: 18.17124
+    mel_mean: -5.517035
+    mel_std: 2.064413
 seed: ${seed}
 generate_properties: false
-processed_folder_path: data/processed_data/ljspeech # It should matche the name
