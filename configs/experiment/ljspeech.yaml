@@ -16,3 +16,4 @@ run_name: LJSpeech
 
 trainer:
   max_steps: 2000000
+  check_val_every_n_epoch: 5

@@ -144,8 +144,8 @@ class FastSpeech2(BaseLightningClass):
         rtf = t * 22050 / (y_hat_post.shape[1] * 256) 
 
         return {
-            "y_pred" : denormalize(y_hat_post, self.mel_mean, self.mel_std),
-            "decoder_output": denormalize(y_hat, self.mel_mean, self.mel_std),
+            "mel" : denormalize(y_hat_post, self.mel_mean, self.mel_std).transpose(1, 2),
+            "decoder_output": denormalize(y_hat, self.mel_mean, self.mel_std).transpose(1, 2),
             "dur_pred": var_ada_outputs["dur_pred"],
             "pitch_pred": denormalize(var_ada_outputs["log_pitch_pred"], self.pitch_mean, self.pitch_std),
             "energy_pred": denormalize(var_ada_outputs["log_energy_pred"], self.energy_mean, self.energy_std),

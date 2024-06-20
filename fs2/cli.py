@@ -13,26 +13,24 @@ from fs2.hifigan.config import v1
 from fs2.hifigan.denoiser import Denoiser
 from fs2.hifigan.env import AttrDict
 from fs2.hifigan.models import Generator as HiFiGAN
-from fs2.models.fastspeech2 import MatchaTTS
+from fs2.models.fastspeech2 import FastSpeech2 
 from fs2.text import sequence_to_text, text_to_sequence
 from fs2.utils.utils import (assert_model_downloaded, get_user_data_dir,
                              intersperse)
 
-MATCHA_URLS = {
-    "matcha_ljspeech": "https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/matcha_ljspeech.ckpt",
-    "matcha_vctk": "https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/matcha_vctk.ckpt",
+BetterFS2_URLS = {
 }
 
 VOCODER_URLS = {
-    "hifigan_T2_v1": "https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/generator_v1",  # Old url: https://drive.google.com/file/d/14NENd4equCBLyyCSke114Mv6YR_j_uFs/view?usp=drive_link
-    "hifigan_univ_v1": "https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/g_02500000",  # Old url: https://drive.google.com/file/d/1qpgI41wNXFcH-iKq1Y42JlBC9j0je8PW/view?usp=drive_link
+    "hifigan_T2_v1": "https://github.com/shivammehta25/BetterFS2-checkpoints/releases/download/v1.0/generator_v1",  # Old url: https://drive.google.com/file/d/14NENd4equCBLyyCSke114Mv6YR_j_uFs/view?usp=drive_link
+    "hifigan_univ_v1": "https://github.com/shivammehta25/BetterFS2-checkpoints/releases/download/v1.0/g_02500000",  # Old url: https://drive.google.com/file/d/1qpgI41wNXFcH-iKq1Y42JlBC9j0je8PW/view?usp=drive_link
 }
 
 MULTISPEAKER_MODEL = {
-    "matcha_vctk": {"vocoder": "hifigan_univ_v1", "speaking_rate": 0.85, "spk": 0, "spk_range": (0, 107)}
+    "fs2_model_vctk": {"vocoder": "hifigan_univ_v1", "speaking_rate": 0.85, "spk": 0, "spk_range": (0, 107)}
 }
 
-SINGLESPEAKER_MODEL = {"matcha_ljspeech": {"vocoder": "hifigan_T2_v1", "speaking_rate": 0.95, "spk": None}}
+SINGLESPEAKER_MODEL = {"fs2_model_ljspeech": {"vocoder": "hifigan_T2_v1", "speaking_rate": 0.95, "spk": None}}
 
 
 def plot_spectrogram_to_numpy(spectrogram, filename):
@@ -71,15 +69,15 @@ def get_texts(args):
 
 def assert_required_models_available(args):
     save_dir = get_user_data_dir()
-    if not hasattr(args, "checkpoint_path") and args.checkpoint_path is None:
+    if hasattr(args, "checkpoint_path") and args.checkpoint_path is not None:
         model_path = args.checkpoint_path
     else:
         model_path = save_dir / f"{args.model}.ckpt"
-        assert_model_downloaded(model_path, MATCHA_URLS[args.model])
+        assert_model_downloaded(model_path, BetterFS2_URLS[args.model])
 
     vocoder_path = save_dir / f"{args.vocoder}"
     assert_model_downloaded(vocoder_path, VOCODER_URLS[args.vocoder])
-    return {"matcha": model_path, "vocoder": vocoder_path}
+    return {"fs2_model": model_path, "vocoder": vocoder_path}
 
 
 def load_hifigan(checkpoint_path, device):
@@ -106,9 +104,9 @@ def load_vocoder(vocoder_name, checkpoint_path, device):
     return vocoder, denoiser
 
 
-def load_matcha(model_name, checkpoint_path, device):
+def load_model(model_name, checkpoint_path, device):
     print(f"[!] Loading {model_name}!")
-    model = MatchaTTS.load_from_checkpoint(checkpoint_path, map_location=device)
+    model = FastSpeech2.load_from_checkpoint(checkpoint_path, map_location=device)
     _ = model.eval()
 
     print(f"[+] {model_name} loaded!")
@@ -135,9 +133,7 @@ def save_to_folder(filename: str, output: dict, folder: str):
 def validate_args(args):
     assert (
         args.text or args.file
-    ), "Either text or file must be provided Matcha-T(ea)TTS need sometext to whisk the waveforms."
-    assert args.temperature >= 0, "Sampling temperature cannot be negative"
-    assert args.steps > 0, "Number of ODE steps must be greater than 0"
+    ), "Either text or file must be provided BetterFS2 need sometext to whisk the waveforms."
 
     if args.checkpoint_path is None:
         # When using pretrained models
@@ -208,14 +204,14 @@ def validate_args_for_single_speaker_model(args):
 @torch.inference_mode()
 def cli():
     parser = argparse.ArgumentParser(
-        description=" 🍵 Matcha-TTS: A fast TTS architecture with conditional flow matching"
+        description=" 🍵 BetterFS2: A fast TTS architecture with conditional flow matching"
     )
     parser.add_argument(
         "--model",
         type=str,
-        default="matcha_ljspeech",
+        default="fs2_ljspeech",
         help="Model to use",
-        choices=MATCHA_URLS.keys(),
+        choices=BetterFS2_URLS.keys(),
     )
 
     parser.add_argument(
@@ -228,25 +224,21 @@ def cli():
     parser.add_argument(
         "--vocoder",
         type=str,
-        default=None,
+        default="hifigan_T2_v1",
         help="Vocoder to use (default: will use the one suggested with the pretrained model))",
         choices=VOCODER_URLS.keys(),
     )
     parser.add_argument("--text", type=str, default=None, help="Text to synthesize")
     parser.add_argument("--file", type=str, default=None, help="Text file to synthesize")
     parser.add_argument("--spk", type=int, default=None, help="Speaker ID")
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.667,
-        help="Variance of the x0 noise (default: 0.667)",
-    )
+
     parser.add_argument(
         "--speaking_rate",
         type=float,
         default=None,
         help="change the speaking rate, a higher value means slower speaking rate (default: 1.0)",
     )
+
     parser.add_argument("--steps", type=int, default=10, help="Number of ODE steps  (default: 10)")
     parser.add_argument("--cpu", action="store_true", help="Use CPU for inference (default: use GPU if available)")
     parser.add_argument(
@@ -255,6 +247,7 @@ def cli():
         default=0.00025,
         help="Strength of the vocoder bias denoiser (default: 0.00025)",
     )
+
     parser.add_argument(
         "--output_folder",
         type=str,
@@ -275,10 +268,10 @@ def cli():
 
     if args.checkpoint_path is not None:
         print(f"[🍵] Loading custom model from {args.checkpoint_path}")
-        paths["matcha"] = args.checkpoint_path
+        paths["fs2_model"] = args.checkpoint_path
         args.model = "custom_model"
 
-    model = load_matcha(args.model, paths["matcha"], device)
+    model = load_model(args.model, paths["fs2_model"], device)
     vocoder, denoiser = load_vocoder(args.vocoder, paths["vocoder"], device)
 
     texts = get_texts(args)
@@ -330,8 +323,6 @@ def batched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
         output = model.synthesise(
             batch["x"].to(device),
             batch["x_lengths"].to(device),
-            n_timesteps=args.steps,
-            temperature=args.temperature,
             spks=spk,
             length_scale=args.speaking_rate,
         )
@@ -339,8 +330,8 @@ def batched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
         output["waveform"] = to_waveform(output["mel"], vocoder, denoiser)
         t = (dt.datetime.now() - start_t).total_seconds()
         rtf_w = t * 22050 / (output["waveform"].shape[-1])
-        print(f"[🍵-Batch: {i}] Matcha-TTS RTF: {output['rtf']:.4f}")
-        print(f"[🍵-Batch: {i}] Matcha-TTS + VOCODER RTF: {rtf_w:.4f}")
+        print(f"[🍵-Batch: {i}] BetterFS2 RTF: {output['rtf']:.4f}")
+        print(f"[🍵-Batch: {i}] BetterFS2 + VOCODER RTF: {rtf_w:.4f}")
         total_rtf.append(output["rtf"])
         total_rtf_w.append(rtf_w)
         for j in range(output["mel"].shape[0]):
@@ -351,9 +342,9 @@ def batched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
             print(f"[🍵-{j}] Waveform saved: {location}")
 
     print("".join(["="] * 100))
-    print(f"[🍵] Average Matcha-TTS RTF: {np.mean(total_rtf):.4f} ± {np.std(total_rtf)}")
-    print(f"[🍵] Average Matcha-TTS + VOCODER RTF: {np.mean(total_rtf_w):.4f} ± {np.std(total_rtf_w)}")
-    print("[🍵] Enjoy the freshly whisked 🍵 Matcha-TTS!")
+    print(f"[🍵] Average BetterFS2 RTF: {np.mean(total_rtf):.4f} ± {np.std(total_rtf)}")
+    print(f"[🍵] Average BetterFS2 + VOCODER RTF: {np.mean(total_rtf_w):.4f} ± {np.std(total_rtf_w)}")
+    print("[🍵] Enjoy the speedy 🍵 BetterFS2!")
 
 
 def unbatched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
@@ -367,13 +358,11 @@ def unbatched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
         text = text.strip()
         text_processed = process_text(i, text, device)
 
-        print(f"[🍵] Whisking Matcha-T(ea)TS for: {i}")
+        print(f"[🍵] Zappying through BetterFS2 for: {i}")
         start_t = dt.datetime.now()
         output = model.synthesise(
             text_processed["x"],
             text_processed["x_lengths"],
-            n_timesteps=args.steps,
-            temperature=args.temperature,
             spks=spk,
             length_scale=args.speaking_rate,
         )
@@ -381,8 +370,8 @@ def unbatched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
         # RTF with HiFiGAN
         t = (dt.datetime.now() - start_t).total_seconds()
         rtf_w = t * 22050 / (output["waveform"].shape[-1])
-        print(f"[🍵-{i}] Matcha-TTS RTF: {output['rtf']:.4f}")
-        print(f"[🍵-{i}] Matcha-TTS + VOCODER RTF: {rtf_w:.4f}")
+        print(f"[🍵-{i}] BetterFS2 RTF: {output['rtf']:.4f}")
+        print(f"[🍵-{i}] BetterFS2 + VOCODER RTF: {rtf_w:.4f}")
         total_rtf.append(output["rtf"])
         total_rtf_w.append(rtf_w)
 
@@ -390,18 +379,16 @@ def unbatched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
         print(f"[+] Waveform saved: {location}")
 
     print("".join(["="] * 100))
-    print(f"[🍵] Average Matcha-TTS RTF: {np.mean(total_rtf):.4f} ± {np.std(total_rtf)}")
-    print(f"[🍵] Average Matcha-TTS + VOCODER RTF: {np.mean(total_rtf_w):.4f} ± {np.std(total_rtf_w)}")
-    print("[🍵] Enjoy the freshly whisked 🍵 Matcha-TTS!")
+    print(f"[🍵] Average BetterFS2 RTF: {np.mean(total_rtf):.4f} ± {np.std(total_rtf)}")
+    print(f"[🍵] Average BetterFS2 + VOCODER RTF: {np.mean(total_rtf_w):.4f} ± {np.std(total_rtf_w)}")
+    print("[🍵] Enjoy the speedy 🍵 BetterFS2!")
 
 
 def print_config(args):
     print("[!] Configurations: ")
     print(f"\t- Model: {args.model}")
     print(f"\t- Vocoder: {args.vocoder}")
-    print(f"\t- Temperature: {args.temperature}")
     print(f"\t- Speaking rate: {args.speaking_rate}")
-    print(f"\t- Number of ODE steps: {args.steps}")
     print(f"\t- Speaker: {args.spk}")
 
 

@@ -6,8 +6,8 @@ import gradio as gr
 import soundfile as sf
 import torch
 
-from fs2.cli import (MATCHA_URLS, VOCODER_URLS, assert_model_downloaded,
-                     get_device, load_matcha, load_vocoder, process_text,
+from fs2.cli import (BetterFS2_URLS, VOCODER_URLS, assert_model_downloaded,
+                     get_device, load_model, load_vocoder, process_text,
                      to_waveform)
 from fs2.utils.utils import get_user_data_dir, plot_tensor
 
@@ -44,20 +44,20 @@ RADIO_OPTIONS = {
 }
 
 # Ensure all the required models are downloaded
-assert_model_downloaded(MATCHA_TTS_LOC("matcha_ljspeech"), MATCHA_URLS["matcha_ljspeech"])
+assert_model_downloaded(MATCHA_TTS_LOC("matcha_ljspeech"), BetterFS2_URLS["matcha_ljspeech"])
 assert_model_downloaded(VOCODER_LOC("hifigan_T2_v1"), VOCODER_URLS["hifigan_T2_v1"])
-assert_model_downloaded(MATCHA_TTS_LOC("matcha_vctk"), MATCHA_URLS["matcha_vctk"])
+assert_model_downloaded(MATCHA_TTS_LOC("matcha_vctk"), BetterFS2_URLS["matcha_vctk"])
 assert_model_downloaded(VOCODER_LOC("hifigan_univ_v1"), VOCODER_URLS["hifigan_univ_v1"])
 
 device = get_device(args)
 
 # Load default model
-model = load_matcha(args.model, MATCHA_TTS_LOC(args.model), device)
+model = load_model(args.model, MATCHA_TTS_LOC(args.model), device)
 vocoder, denoiser = load_vocoder(args.vocoder, VOCODER_LOC(args.vocoder), device)
 
 
 def load_model(model_name, vocoder_name):
-    model = load_matcha(model_name, MATCHA_TTS_LOC(model_name), device)
+    model = load_model(model_name, MATCHA_TTS_LOC(model_name), device)
     vocoder, denoiser = load_vocoder(vocoder_name, VOCODER_LOC(vocoder_name), device)
     return model, vocoder, denoiser
 

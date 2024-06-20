@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from lightning import LightningModule
 
-from fs2.cli import VOCODER_URLS, load_matcha, load_vocoder
+from fs2.cli import VOCODER_URLS, load_model, load_vocoder
 
 DEFAULT_OPSET = 15
 
@@ -121,7 +121,7 @@ def main():
     print(f"Setting n_timesteps to {args.n_timesteps}")
 
     checkpoint_path = Path(args.checkpoint_path)
-    matcha = load_matcha(checkpoint_path.stem, checkpoint_path, "cpu")
+    matcha = load_model(checkpoint_path.stem, checkpoint_path, "cpu")
 
     if args.vocoder_name or args.vocoder_checkpoint_path:
         assert (

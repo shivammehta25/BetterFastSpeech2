@@ -23,6 +23,7 @@ Changes from the original architecture:
   - Used IPA phonemes with blanks in between phones.
   - No LR decay
   - Duration prediction in log domain
+  - Everyone seems to be using the postnet from Tacotron 2; I've used it as well.
 
 
 ## Installation

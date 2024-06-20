@@ -179,19 +179,19 @@ class BaseLightningClass(LightningModule, ABC):
                 x_lengths = one_batch["x_lengths"][i].unsqueeze(0).to(self.device)
                 spks = one_batch["spks"][i].unsqueeze(0).to(self.device) if one_batch["spks"] is not None else None
                 output = self.synthesise(x[:, :x_lengths], x_lengths, spks=spks)
-                decoder_output, y_pred = output["decoder_output"], output["y_pred"]
+                decoder_output, y_pred = output["decoder_output"], output["mel"]
                 pitch_pred, energy_pred = output["pitch_pred"], output["energy_pred"]
  
                 self.logger.experiment.add_image(
                     f"dec_output/{i}",
-                    plot_tensor(decoder_output.squeeze().cpu().T),
+                    plot_tensor(decoder_output.squeeze().cpu()),
                     self.current_epoch,
                     dataformats="HWC",
                 )
 
                 self.logger.experiment.add_image(
                     f"generated/mel_{i}",
-                    self.plot_mel([(y_pred.squeeze().cpu().numpy().T, pitch_pred.cpu().squeeze(), energy_pred.cpu().squeeze())], [f"Generated_{i}"]),
+                    self.plot_mel([(y_pred.squeeze().cpu().numpy(), pitch_pred.cpu().squeeze(), energy_pred.cpu().squeeze())], [f"Generated_{i}"]),
                     self.current_epoch,
                     dataformats="HWC",
                 )
