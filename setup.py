@@ -28,7 +28,7 @@ setup(
     entry_points={
         "console_scripts": [
             "betterfs2=fs2.cli:cli",
-            "betterfs2-tts-app=fs2.app:main",
+            # "betterfs2-tts-app=fs2.app:main",
         ]
     },
     python_requires=">=3.9.0",

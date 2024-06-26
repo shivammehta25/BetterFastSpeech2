@@ -50,11 +50,6 @@ pip install -e .
 betterfs2 --text "<INPUT TEXT>"
 ```
 
-or
-
-```bash
-betterfs2-tts-app
-```
 or open `synthesis.ipynb` on jupyter notebook
 
 ## Train with your own dataset
