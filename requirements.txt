@@ -36,7 +36,7 @@ matplotlib
 pandas
 notebook
 ipywidgets
-gradio
+gradio==3.43.2
 gdown
 wget
 seaborn

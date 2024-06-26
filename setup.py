@@ -27,11 +27,9 @@ setup(
     # use this to customize global commands available in the terminal after installing the package
     entry_points={
         "console_scripts": [
-            # "matcha-data-stats=matcha.utils.generate_data_statistics:main",
-            # "matcha-tts=matcha.cli:cli",
-            # "matcha-tts-app=matcha.app:main",
+            "betterfs2=fs2.cli:cli",
+            "betterfs2-tts-app=fs2.app:main",
         ]
     },
-    # ext_modules=cythonize(exts, language_level=3),
     python_requires=">=3.9.0",
 )

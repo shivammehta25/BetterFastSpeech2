@@ -19,6 +19,7 @@ from fs2.utils.utils import (assert_model_downloaded, get_user_data_dir,
                              intersperse)
 
 BetterFS2_URLS = {
+    'fs2_ljspeech': "https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/betterfs2_ljspeech.ckpt"
 }
 
 VOCODER_URLS = {
@@ -30,7 +31,7 @@ MULTISPEAKER_MODEL = {
     "fs2_model_vctk": {"vocoder": "hifigan_univ_v1", "speaking_rate": 0.85, "spk": 0, "spk_range": (0, 107)}
 }
 
-SINGLESPEAKER_MODEL = {"fs2_model_ljspeech": {"vocoder": "hifigan_T2_v1", "speaking_rate": 0.95, "spk": None}}
+SINGLESPEAKER_MODEL = {"fs2_ljspeech": {"vocoder": "hifigan_T2_v1", "speaking_rate": 0.95, "spk": None}}
 
 
 def plot_spectrogram_to_numpy(spectrogram, filename):
@@ -133,7 +134,7 @@ def save_to_folder(filename: str, output: dict, folder: str):
 def validate_args(args):
     assert (
         args.text or args.file
-    ), "Either text or file must be provided BetterFS2 need sometext to whisk the waveforms."
+    ), "Either text or file must be provided BetterFS2 need sometext to generate the waveforms."
 
     if args.checkpoint_path is None:
         # When using pretrained models
@@ -204,7 +205,7 @@ def validate_args_for_single_speaker_model(args):
 @torch.inference_mode()
 def cli():
     parser = argparse.ArgumentParser(
-        description=" 🍵 BetterFS2: A fast TTS architecture with conditional flow matching"
+        description=" 🍵 BetterFS2: A hackable FastSpeech 2 codebase"
     )
     parser.add_argument(
         "--model",
@@ -317,13 +318,14 @@ def batched_synthesis(args, device, model, vocoder, denoiser, texts, spk):
         collate_fn=batched_collate_fn,
         num_workers=8,
     )
+    b = batch["x"].shape[0]
     for i, batch in enumerate(dataloader):
         i = i + 1
         start_t = dt.datetime.now()
         output = model.synthesise(
             batch["x"].to(device),
             batch["x_lengths"].to(device),
-            spks=spk,
+            spks=spk.expand(b) if spk is not None else spk,
             length_scale=args.speaking_rate,
         )
 
