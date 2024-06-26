@@ -1,0 +1,12 @@
+{
+    "pitch_min": 62.217014,
+    "pitch_max": 792.962036,
+    "pitch_mean": 211.046158,
+    "pitch_std": 53.012085,
+    "energy_min": 0.023226,
+    "energy_max": 241.037918,
+    "energy_mean": 21.821531,
+    "energy_std": 18.17124,
+    "mel_mean": -5.517035,
+    "mel_std": 2.064413
+}
