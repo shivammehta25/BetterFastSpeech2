@@ -1,0 +1,4 @@
+title: BetterFastSpeech 2 
+theme: jekyll-theme-dinky
+description: Just an ordinary FastSpeech 2 implementation but better codebase
+show_downloads: False
