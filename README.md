@@ -41,7 +41,7 @@ conda activate betterfs2
 2. Install from source
 
 ```bash
-pip install git+https://github.com/shivammehta25/BetterFastSpeech2.git
+git clone https://github.com/shivammehta25/BetterFastSpeech2.git
 cd BetterFastSpeech2
 pip install -e .
 ```
