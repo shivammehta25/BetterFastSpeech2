@@ -26,6 +26,9 @@ Changes from the original architecture:
   - Everyone seems to be using the postnet from Tacotron 2; I've used it as well.
 
 
+[Link to LJ Speech checkpoint](https://github.com/shivammehta25/Matcha-TTS-checkpoints/releases/download/v1.0/betterfs2_ljspeech.ckpt) 
+**Running the code locally with cli will autodownload the checkpoint as well.**
+
 ## Installation
 
 1. Create an environment (suggested but optional)
